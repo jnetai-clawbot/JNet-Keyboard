@@ -1,5 +1,14 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-14 - v1.0.1
+### Changes
+- Fixed bottom row centering: space bar widened to 32%p, added settings cog (⚙) to bottom right
+- Removed horizontal gaps between all keys (0px) for tighter layout
+- Removed trailing horizontalGap on 'l' key in A-row to eliminate gap between k and l
+- Fixed backspace: now uses sendDownUpKeyEvents(KEYCODE_DEL) for reliable single-press deletion
+- Added CandidateView suggestion bar for auto-correct/word completion support
+- Keyboard layout now wrapped in LinearLayout with CandidateView above KeyboardView
+
 ## 2026-08-14 - v1.0.0
 ### Files Added
 - settings.gradle

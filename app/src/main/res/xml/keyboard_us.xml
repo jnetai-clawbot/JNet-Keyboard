@@ -2,7 +2,7 @@
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p"
     android:keyHeight="@dimen/key_height"
-    android:horizontalGap="1px"
+    android:horizontalGap="0px"
     android:verticalGap="1px">
 
     <Row>
@@ -40,7 +40,7 @@
         <Key android:codes="104" android:keyLabel="h" />
         <Key android:codes="106" android:keyLabel="j" />
         <Key android:codes="107" android:keyLabel="k" />
-        <Key android:codes="108" android:keyLabel="l" android:keyEdgeFlags="right" android:horizontalGap="5%p" />
+        <Key android:codes="108" android:keyLabel="l" android:keyEdgeFlags="right" />
     </Row>
 
     <Row>
@@ -61,11 +61,12 @@
         <Key android:codes="-102" android:keyLabel="&amp;123" android:keyWidth="10%p" android:keyEdgeFlags="left" />
         <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
         <Key android:codes="-101" android:keyLabel="😊" android:keyWidth="8%p" />
-        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="28%p" />
+        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="32%p" />
         <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
         <Key android:codes="-103" android:keyLabel="Aa" android:keyWidth="8%p" />
         <Key android:codes="-105" android:keyLabel="🌐" android:keyWidth="8%p" />
-        <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="12%p" android:keyEdgeFlags="right" />
+        <Key android:codes="-104" android:keyLabel="⚙" android:keyWidth="8%p" />
+        <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="10%p" android:keyEdgeFlags="right" />
     </Row>
 
 </Keyboard>

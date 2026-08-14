@@ -1,5 +1,6 @@
 package com.jnetai.keyboard.ime;
 
+import android.inputmethodservice.CandidateView;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -10,8 +11,10 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import com.jnetai.keyboard.clipboard.ClipboardManager;
@@ -27,6 +30,7 @@ import java.util.List;
 public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
     private static JNetIME instance;
     private KeyboardView keyboardView;
+    private CandidateView candidateView;
     private Keyboard currentKeyboard;
     private Keyboard ukKeyboard;
     private Keyboard usKeyboard;
@@ -46,6 +50,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private StringBuilder composing = new StringBuilder();
     private long lastShiftTime = 0;
     private Handler handler = new Handler(Looper.getMainLooper());
+    private CompletionInfo[] completions;
 
     public static JNetIME getInstance() { return instance; }
 
@@ -62,16 +67,29 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public View onCreateInputView() {
-        keyboardView = (KeyboardView) getLayoutInflater().inflate(
+        View root = getLayoutInflater().inflate(
                 getResources().getIdentifier("keyboard_view", "layout", getPackageName()), null);
+        keyboardView = root.findViewById(getResources().getIdentifier("keyboard", "id", getPackageName()));
+        candidateView = root.findViewById(getResources().getIdentifier("candidates", "id", getPackageName()));
+
         if (keyboardView == null) {
             keyboardView = new KeyboardView(this, null);
         }
         keyboardView.setOnKeyboardActionListener(this);
         keyboardView.setPreviewEnabled(false);
+
+        if (candidateView != null) {
+            candidateView.setService(this);
+        }
+
         loadKeyboards();
         applyTheme();
-        return keyboardView;
+        return root;
+    }
+
+    @Override
+    public View onCreateCandidatesView() {
+        return candidateView;
     }
 
     private void loadKeyboards() {
@@ -112,6 +130,44 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
         if (keyboardView != null && currentKeyboard != null) {
             keyboardView.setKeyboard(currentKeyboard);
+        }
+        updateCandidates();
+    }
+
+    @Override
+    public void onDisplayCompletions(CompletionInfo[] completions) {
+        if (completions == null) {
+            this.completions = null;
+            if (candidateView != null) candidateView.setVisibility(View.GONE);
+            return;
+        }
+        this.completions = completions;
+        if (candidateView != null) {
+            candidateView.setSuggestions(completions, true, true);
+            candidateView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateCandidates() {
+        if (candidateView == null) return;
+        if (completions != null && completions.length > 0) {
+            candidateView.setSuggestions(completions, true, true);
+            candidateView.setVisibility(View.VISIBLE);
+        } else {
+            candidateView.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void pickSuggestionManually(int index) {
+        if (completions != null && index >= 0 && index < completions.length) {
+            CompletionInfo ci = completions[index];
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) {
+                ic.commitCompletion(ci);
+            }
+            completions = null;
+            updateCandidates();
         }
     }
 
@@ -161,34 +217,34 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             case Keyboard.KEYCODE_DONE:
                 handleEnter(ic);
                 break;
-            case -101: // Emoji
+            case -101:
                 toggleEmoji();
                 break;
-            case -102: // Symbols
+            case -102:
                 toggleSymbols();
                 break;
-            case -103: // Font selector
+            case -103:
                 openFontSelector();
                 break;
-            case -104: // Settings
+            case -104:
                 openSettings();
                 break;
-            case -105: // Translation
+            case -105:
                 handleManualTranslation(ic);
                 break;
-            case -106: // Clipboard
+            case -106:
                 openClipboard();
                 break;
-            case -107: // Space
+            case -107:
                 handleSpace(ic);
                 break;
-            case -108: // Switch to letters
+            case -108:
                 switchToLetters();
                 break;
-            case -109: // Symbols page 2
+            case -109:
                 switchToSymbols2();
                 break;
-            case -110: // Emoji search
+            case -110:
                 openEmojiSearch();
                 break;
             default:
@@ -205,7 +261,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             composing.setLength(composing.length() - 1);
             ic.setComposingText(composing, 1);
         } else {
-            ic.deleteSurroundingText(1, 0);
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
         }
     }
 
@@ -438,7 +494,6 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 }
             }
         } catch (Exception e) {
-            // Haptic not available
         }
     }
 
