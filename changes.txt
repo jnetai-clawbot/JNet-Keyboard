@@ -1,0 +1,59 @@
+# J~Net Keyboard - Changes Log
+
+## 2026-08-14 - v1.0.0
+### Files Added
+- settings.gradle
+- build.gradle (root)
+- gradle.properties
+- app/build.gradle
+- app/proguard-rules.pro
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/strings.xml
+- app/src/main/res/values/colors.xml
+- app/src/main/res/values/styles.xml
+- app/src/main/res/values/dimens.xml
+- app/src/main/res/xml/method.xml
+- app/src/main/res/xml/keyboard_uk.xml
+- app/src/main/res/xml/keyboard_us.xml
+- app/src/main/res/xml/keyboard_symbols.xml
+- app/src/main/res/xml/keyboard_symbols2.xml
+- app/src/main/res/xml/keyboard_emoji.xml
+- app/src/main/res/layout/keyboard_view.xml
+- app/src/main/res/drawable/key_background.xml
+- app/src/main/java/com/jnetai/keyboard/ime/JNetIME.java
+- app/src/main/java/com/jnetai/keyboard/unicode/UnicodeStyleDatabase.java
+- app/src/main/java/com/jnetai/keyboard/translation/TranslationProvider.java
+- app/src/main/java/com/jnetai/keyboard/translation/LibreTranslateProvider.java
+- app/src/main/java/com/jnetai/keyboard/translation/GoogleTranslateProvider.java
+- app/src/main/java/com/jnetai/keyboard/translation/TranslationManager.java
+- app/src/main/java/com/jnetai/keyboard/settings/KeyboardSettings.java
+- app/src/main/java/com/jnetai/keyboard/settings/SettingsActivity.java
+- app/src/main/java/com/jnetai/keyboard/diagnostics/Diagnostics.java
+- app/src/main/java/com/jnetai/keyboard/diagnostics/ErrorCodes.java
+- app/src/main/java/com/jnetai/keyboard/emoji/EmojiDatabase.java
+- app/src/main/java/com/jnetai/keyboard/symbols/SymbolDatabase.java
+- app/src/main/java/com/jnetai/keyboard/clipboard/ClipboardManager.java
+- app/src/main/java/com/jnetai/keyboard/remapping/KeyRemapping.java
+- app/src/main/java/com/jnetai/keyboard/update/UpdateChecker.java
+- gradle/wrapper/gradle-wrapper.properties
+- .github/workflows/release.yml
+- changes.txt
+
+### Implementation Summary
+- Complete Android IME keyboard service (InputMethodService)
+- UK QWERTY and US QWERTY keyboard layouts with number row
+- 26 Unicode style transformations (Bold, Italic, Script, Fraktur, Sans-Serif, Monospace, Double-Struck, Small Caps, Superscript, Subscript, Bubble, Square, Fullwidth, Inverted, Strikethrough, Underline, etc.)
+- Translation system with LibreTranslate and Google Translate providers
+- Secure input detection (passwords, PINs disabled for translation/transformation)
+- Settings with persistence (SharedPreferences)
+- Dark/Light/System theme support
+- Emoji database with search (100+ emojis)
+- Symbol database with categories (Punctuation, Math, Currency, Arrows, Greek, etc.)
+- Clipboard manager (save/load text across apps)
+- Key remapping system
+- Update checker (GitHub API)
+- About section with share functionality
+- Comprehensive diagnostics system with error codes
+- GitHub Actions CI/CD workflow for signed release builds
+- Permanent keystore (ciphervault alias from password vault)
+- minSdk 26 (Samsung Galaxy S8), targetSdk 34

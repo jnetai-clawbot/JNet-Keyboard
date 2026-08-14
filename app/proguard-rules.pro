@@ -1,0 +1,5 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.jnetai.keyboard.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
