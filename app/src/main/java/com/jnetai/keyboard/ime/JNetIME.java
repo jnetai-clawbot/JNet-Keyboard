@@ -174,7 +174,6 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
     }
 
-    @Override
     public void pickSuggestionManually(int index) {
         if (completions != null && index >= 0 && index < completions.length) {
             CompletionInfo ci = completions[index];
