@@ -1,0 +1,33 @@
+
+
+
+Project complete. Here's the summary:
+Repository: https://github.com/jnetai-clawbot/JNet-Keyboard
+
+Release: https://github.com/jnetai-clawbot/JNet-Keyboard/releases/latest
+
+APK: J~Net-Keyboard.apk (2.1 MB, signed with ciphervault keystore)
+What was built:
+- Full Android IME keyboard (InputMethodService) — UK/US QWERTY layouts with number row
+- 26 Unicode style transformations (Bold, Italic, Script, Fraktur, Sans-Serif, Monospace, Double-Struck, Small Caps, Superscript, Subscript, Bubble, Square, Fullwidth, Inverted, Strikethrough, Underline, etc.)
+- Translation system with LibreTranslate + Google Translate providers
+- Secure input detection (passwords/PINs disable translation/transformation)
+- Settings with persistence, Dark/Light/System theme
+- Emoji database (100+ with search), Symbol database (7 categories)
+- Clipboard manager, Key remapping, Update checker, About/Share
+- Comprehensive diagnostics with error codes (JNK-*)
+- GitHub Actions CI/CD — builds signed APK on tag push
+Secrets configured: KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+
+
+
+Android keyboards always appear as both an app (for settings) and a keyboard. After installing:
+1. Go to Settings → System → Languages & Input → Virtual Keyboard (on screen keyboard)
+2. Tap Manage keyboards and enable J~Net Keyboard (+ manage keyboards)
+3. Set it as the current/default keyboard (Change default kb to J~net Keyboard)
+
+The launcher icon opens the settings activity — that's standard IME behavior. The keyboard service itself works across all apps via InputMethodService.
+
+
+
+

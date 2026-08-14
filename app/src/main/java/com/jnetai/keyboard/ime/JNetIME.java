@@ -1,6 +1,5 @@
 package com.jnetai.keyboard.ime;
 
-import android.inputmethodservice.CandidateView;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -11,12 +10,15 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import com.jnetai.keyboard.clipboard.ClipboardManager;
 import com.jnetai.keyboard.diagnostics.Diagnostics;
 import com.jnetai.keyboard.diagnostics.ErrorCodes;
@@ -30,7 +32,7 @@ import java.util.List;
 public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
     private static JNetIME instance;
     private KeyboardView keyboardView;
-    private CandidateView candidateView;
+    private LinearLayout suggestionBar;
     private Keyboard currentKeyboard;
     private Keyboard ukKeyboard;
     private Keyboard usKeyboard;
@@ -67,20 +69,25 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public View onCreateInputView() {
-        View root = getLayoutInflater().inflate(
-                getResources().getIdentifier("keyboard_view", "layout", getPackageName()), null);
-        keyboardView = root.findViewById(getResources().getIdentifier("keyboard", "id", getPackageName()));
-        candidateView = root.findViewById(getResources().getIdentifier("candidates", "id", getPackageName()));
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        if (keyboardView == null) {
-            keyboardView = new KeyboardView(this, null);
-        }
+        suggestionBar = new LinearLayout(this);
+        suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
+        suggestionBar.setBackgroundColor(0xFF2D2D2D);
+        suggestionBar.setVisibility(View.GONE);
+        suggestionBar.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(suggestionBar);
+
+        keyboardView = new KeyboardView(this, null);
+        keyboardView.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         keyboardView.setOnKeyboardActionListener(this);
         keyboardView.setPreviewEnabled(false);
-
-        if (candidateView != null) {
-            candidateView.setService(this);
-        }
+        root.addView(keyboardView);
 
         loadKeyboards();
         applyTheme();
@@ -89,7 +96,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public View onCreateCandidatesView() {
-        return candidateView;
+        return suggestionBar;
     }
 
     private void loadKeyboards() {
@@ -136,25 +143,34 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public void onDisplayCompletions(CompletionInfo[] completions) {
-        if (completions == null) {
+        if (completions == null || completions.length == 0) {
             this.completions = null;
-            if (candidateView != null) candidateView.setVisibility(View.GONE);
+            if (suggestionBar != null) suggestionBar.setVisibility(View.GONE);
             return;
         }
         this.completions = completions;
-        if (candidateView != null) {
-            candidateView.setSuggestions(completions, true, true);
-            candidateView.setVisibility(View.VISIBLE);
-        }
+        updateCandidates();
     }
 
     private void updateCandidates() {
-        if (candidateView == null) return;
+        if (suggestionBar == null) return;
+        suggestionBar.removeAllViews();
         if (completions != null && completions.length > 0) {
-            candidateView.setSuggestions(completions, true, true);
-            candidateView.setVisibility(View.VISIBLE);
+            suggestionBar.setVisibility(View.VISIBLE);
+            for (int i = 0; i < completions.length; i++) {
+                final int index = i;
+                CompletionInfo ci = completions[i];
+                TextView tv = new TextView(this);
+                tv.setText(ci.getText());
+                tv.setTextSize(16);
+                tv.setTextColor(0xFFFFFFFF);
+                tv.setPadding(16, 12, 16, 12);
+                tv.setBackgroundColor(0xFF3C3C3C);
+                tv.setOnClickListener(v -> pickSuggestionManually(index));
+                suggestionBar.addView(tv);
+            }
         } else {
-            candidateView.setVisibility(View.GONE);
+            suggestionBar.setVisibility(View.GONE);
         }
     }
 
