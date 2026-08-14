@@ -14,3 +14,7 @@ local.properties
 *.jks
 *.keystore
 /apk/*.apk
+Notes.txt
+PROMPT-extended.md
+PROMPT.md
+gradlew.bat
