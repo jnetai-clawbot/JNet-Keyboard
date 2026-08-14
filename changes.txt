@@ -1,5 +1,15 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-14 - v1.0.2
+### Bug Fixes
+- Fixed crash: onCreateCandidatesView() was returning a view already attached to root layout
+  (caused "view already has a parent" crash). Now creates a fresh unattached LinearLayout.
+- Added LAUNCHER category to manifest so app appears in launcher as both app and keyboard
+
+### Changes
+- Auto-correct/suggestions now disabled by default (toggle in General settings)
+- onDisplayCompletions() respects auto-correct setting before showing suggestion bar
+
 ## 2026-08-14 - v1.0.1
 ### Changes
 - Fixed bottom row centering: space bar widened to 32%p, added settings cog (⚙) to bottom right

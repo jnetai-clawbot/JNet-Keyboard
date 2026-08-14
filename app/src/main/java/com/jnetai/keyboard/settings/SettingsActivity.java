@@ -189,6 +189,7 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Number Row", settings.isNumberRowEnabled(), (btn, checked) -> settings.setNumberRowEnabled(checked));
         addSwitch("Haptic Feedback", settings.isHapticFeedback(), (btn, checked) -> settings.setHapticFeedback(checked));
         addSwitch("Key Sound", settings.isKeySound(), (btn, checked) -> settings.setKeySound(checked));
+        addSwitch("Auto-Correct / Suggestions", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
     }
 
     private void buildUnicode() {

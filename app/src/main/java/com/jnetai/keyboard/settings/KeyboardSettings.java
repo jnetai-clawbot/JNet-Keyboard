@@ -86,6 +86,9 @@ public class KeyboardSettings {
     public boolean isCompactLayout() { return prefs.getBoolean("compact_layout", false); }
     public void setCompactLayout(boolean compact) { prefs.edit().putBoolean("compact_layout", compact).apply(); }
 
+    public boolean isAutoCorrectEnabled() { return prefs.getBoolean("auto_correct", false); }
+    public void setAutoCorrectEnabled(boolean enabled) { prefs.edit().putBoolean("auto_correct", enabled).apply(); }
+
     public boolean isStyleFavourite(String styleId) {
         return prefs.getBoolean("fav_" + styleId, false);
     }

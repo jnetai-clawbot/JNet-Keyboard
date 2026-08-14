@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.jnetai.keyboard.clipboard.ClipboardManager;
@@ -26,8 +25,6 @@ import com.jnetai.keyboard.remapping.KeyRemapping;
 import com.jnetai.keyboard.settings.KeyboardSettings;
 import com.jnetai.keyboard.translation.TranslationManager;
 import com.jnetai.keyboard.unicode.UnicodeStyleDatabase;
-import java.util.ArrayList;
-import java.util.List;
 
 public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
     private static JNetIME instance;
@@ -74,14 +71,6 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        suggestionBar = new LinearLayout(this);
-        suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
-        suggestionBar.setBackgroundColor(0xFF2D2D2D);
-        suggestionBar.setVisibility(View.GONE);
-        suggestionBar.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(suggestionBar);
-
         keyboardView = new KeyboardView(this, null);
         keyboardView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -96,6 +85,12 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public View onCreateCandidatesView() {
+        suggestionBar = new LinearLayout(this);
+        suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
+        suggestionBar.setBackgroundColor(0xFF2D2D2D);
+        suggestionBar.setVisibility(View.GONE);
+        suggestionBar.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return suggestionBar;
     }
 
@@ -133,7 +128,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         super.onStartInputView(info, restarting);
         isSecureField = isSecureInputType(info);
         if (isSecureField) {
-            Diagnostics.info("JNetIME", "onStartInputView", "Secure field detected, disabling translation/transformation");
+            Diagnostics.info("JNetIME", "onStartInputView", "Secure field detected");
         }
         if (keyboardView != null && currentKeyboard != null) {
             keyboardView.setKeyboard(currentKeyboard);
@@ -143,6 +138,11 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public void onDisplayCompletions(CompletionInfo[] completions) {
+        if (!settings.isAutoCorrectEnabled()) {
+            this.completions = null;
+            if (suggestionBar != null) suggestionBar.setVisibility(View.GONE);
+            return;
+        }
         if (completions == null || completions.length == 0) {
             this.completions = null;
             if (suggestionBar != null) suggestionBar.setVisibility(View.GONE);
@@ -155,7 +155,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void updateCandidates() {
         if (suggestionBar == null) return;
         suggestionBar.removeAllViews();
-        if (completions != null && completions.length > 0) {
+        if (completions != null && completions.length > 0 && settings.isAutoCorrectEnabled()) {
             suggestionBar.setVisibility(View.VISIBLE);
             for (int i = 0; i < completions.length; i++) {
                 final int index = i;
