@@ -30,6 +30,7 @@ public class UnicodeStyleDatabase {
     private static final Map<String, UnicodeStyle> styleMap = new LinkedHashMap<>();
 
     static {
+        registerStyle("normal", "Normal", "Normal", "Default", normalMappings());
         registerStyle("bold", "Bold", "𝐁𝐨𝐥𝐝", "Serif", boldMappings());
         registerStyle("italic", "Italic", "𝐼𝑡𝑎𝑙𝑖𝑐", "Serif", italicMappings());
         registerStyle("bold-italic", "Bold Italic", "𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄", "Serif", boldItalicMappings());
@@ -77,7 +78,7 @@ public class UnicodeStyleDatabase {
     }
 
     public static String getDefaultStyleId() {
-        return "bold";
+        return "normal";
     }
 
     public static String transform(String text, String styleId) {
@@ -558,5 +559,9 @@ public class UnicodeStyleDatabase {
             m.put(c, String.valueOf((char)(0xDDE6 + (c - 'a'))));
         }
         return m;
+    }
+
+    private static Map<Character, String> normalMappings() {
+        return new LinkedHashMap<>();
     }
 }
