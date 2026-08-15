@@ -1,5 +1,17 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.6
+### Changes
+- Auto-correct now actually works (off by default, toggle in General settings)
+  - Suggestion bar appears above the keyboard (like Gboard) while typing
+  - Suggests nearest matching dictionary word to complete half-typed words
+  - Auto-corrects misspelled words on space/enter
+  - Tap a suggestion to accept it
+- Fixed Translate Mode doubling each character (was translating on every keystroke)
+  - English input is accumulated and translated when the word is finished (space)
+  - Globe icon (🌐) now translates the WHOLE current input into the selected language
+  - Enter/send also translates the whole input before sending
+
 ## 2026-08-15 - v1.0.5
 ### Changes
 - Added "Enter Key Sends Message" toggle in General settings (ON by default)

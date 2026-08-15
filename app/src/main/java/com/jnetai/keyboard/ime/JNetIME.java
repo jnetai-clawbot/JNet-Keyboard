@@ -19,6 +19,7 @@ import android.view.inputmethod.InputConnection;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.jnetai.keyboard.clipboard.ClipboardManager;
+import com.jnetai.keyboard.dictionary.WordDictionary;
 import com.jnetai.keyboard.diagnostics.Diagnostics;
 import com.jnetai.keyboard.diagnostics.ErrorCodes;
 import com.jnetai.keyboard.remapping.KeyRemapping;
@@ -47,6 +48,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private boolean isSymbolsPage2 = false;
     private boolean isEmojiPage = false;
     private StringBuilder composing = new StringBuilder();
+    private StringBuilder currentWord = new StringBuilder();
     private long lastShiftTime = 0;
     private long lastPressTime = 0;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -134,56 +136,77 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (keyboardView != null && currentKeyboard != null) {
             keyboardView.setKeyboard(currentKeyboard);
         }
-        updateCandidates();
+        currentWord.setLength(0);
+        composing.setLength(0);
+        hideSuggestions();
     }
 
     @Override
     public void onDisplayCompletions(CompletionInfo[] completions) {
         if (!settings.isAutoCorrectEnabled()) {
             this.completions = null;
-            if (suggestionBar != null) suggestionBar.setVisibility(View.GONE);
+            hideSuggestions();
             return;
         }
         if (completions == null || completions.length == 0) {
             this.completions = null;
-            if (suggestionBar != null) suggestionBar.setVisibility(View.GONE);
+            hideSuggestions();
             return;
         }
         this.completions = completions;
-        updateCandidates();
     }
 
-    private void updateCandidates() {
+    private void updateSuggestions() {
+        String typed = currentWord.toString();
+        java.util.List<String> suggestions = WordDictionary.getSuggestions(typed);
+        if (suggestions.isEmpty()) {
+            hideSuggestions();
+            return;
+        }
+        setCandidatesViewShown(true);
         if (suggestionBar == null) return;
         suggestionBar.removeAllViews();
-        if (completions != null && completions.length > 0 && settings.isAutoCorrectEnabled()) {
-            suggestionBar.setVisibility(View.VISIBLE);
-            for (int i = 0; i < completions.length; i++) {
-                final int index = i;
-                CompletionInfo ci = completions[i];
-                TextView tv = new TextView(this);
-                tv.setText(ci.getText());
-                tv.setTextSize(16);
-                tv.setTextColor(0xFFFFFFFF);
-                tv.setPadding(16, 12, 16, 12);
-                tv.setBackgroundColor(0xFF3C3C3C);
-                tv.setOnClickListener(v -> pickSuggestionManually(index));
-                suggestionBar.addView(tv);
-            }
-        } else {
+        suggestionBar.setVisibility(View.VISIBLE);
+        for (String s : suggestions) {
+            TextView tv = new TextView(this);
+            tv.setText(s);
+            tv.setTextSize(16);
+            tv.setTextColor(0xFFFFFFFF);
+            tv.setPadding(16, 12, 16, 12);
+            tv.setBackgroundColor(0xFF3C3C3C);
+            tv.setOnClickListener(v -> acceptSuggestion(s));
+            suggestionBar.addView(tv);
+        }
+    }
+
+    private void acceptSuggestion(String suggestion) {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        currentWord.setLength(0);
+        hideSuggestions();
+        ic.commitText(suggestion + " ", 1);
+    }
+
+    private void hideSuggestions() {
+        setCandidatesViewShown(false);
+        if (suggestionBar != null) {
+            suggestionBar.removeAllViews();
             suggestionBar.setVisibility(View.GONE);
         }
     }
 
-    public void pickSuggestionManually(int index) {
-        if (completions != null && index >= 0 && index < completions.length) {
-            CompletionInfo ci = completions[index];
-            InputConnection ic = getCurrentInputConnection();
-            if (ic != null) {
-                ic.commitCompletion(ci);
-            }
-            completions = null;
-            updateCandidates();
+    private void commitCurrentWord(InputConnection ic) {
+        String word = currentWord.toString();
+        if (word.isEmpty()) return;
+        currentWord.setLength(0);
+        hideSuggestions();
+        String corrected = WordDictionary.correct(word);
+        if (corrected != null && !corrected.equals(word)) {
+            ic.setComposingText(corrected, 1);
+            ic.finishComposingText();
+        } else {
+            ic.setComposingText(word, 1);
+            ic.finishComposingText();
         }
     }
 
@@ -274,6 +297,15 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         CharSequence selected = ic.getSelectedText(0);
         if (selected != null && selected.length() > 0) {
             ic.commitText("", 1);
+        } else if (currentWord.length() > 0) {
+            currentWord.setLength(currentWord.length() - 1);
+            if (currentWord.length() > 0) {
+                ic.setComposingText(currentWord, 1);
+                updateSuggestions();
+            } else {
+                hideSuggestions();
+                ic.finishComposingText();
+            }
         } else if (composing.length() > 0) {
             composing.setLength(composing.length() - 1);
             ic.setComposingText(composing, 1);
@@ -298,6 +330,17 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleEnter(InputConnection ic) {
+        if (!isSecureField && settings.isAutoCorrectEnabled() && currentWord.length() > 0) {
+            commitCurrentWord(ic);
+        }
+        if (!isSecureField && settings.isTranslationEnabled()) {
+            if (composing.length() > 0) {
+                ic.finishComposingText();
+                composing.setLength(0);
+            }
+            translateWholeInputThenSend();
+            return;
+        }
         if (composing.length() > 0) {
             ic.finishComposingText();
             composing.setLength(0);
@@ -310,6 +353,18 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleSpace(InputConnection ic) {
+        if (!isSecureField && settings.isAutoCorrectEnabled() && currentWord.length() > 0) {
+            commitCurrentWord(ic);
+            ic.commitText(" ", 1);
+            return;
+        }
+        if (!isSecureField && settings.isTranslationEnabled() && composing.length() > 0) {
+            String word = composing.toString();
+            ic.setComposingText("", 1);
+            composing.setLength(0);
+            translateWord(word, " ");
+            return;
+        }
         ic.commitText(" ", 1);
     }
 
@@ -330,19 +385,39 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             primaryCode = Character.toUpperCase(primaryCode);
         }
         String text = String.valueOf((char) primaryCode);
+        boolean isLetter = Character.isLetter(primaryCode);
+
+        if (!isSecureField && settings.isTranslationEnabled() && isLetter) {
+            composing.append(text);
+            ic.setComposingText(composing, 1);
+            if (isShifted && !isCapsLock) {
+                isShifted = false;
+                if (keyboardView != null) keyboardView.setShifted(false);
+            }
+            return;
+        }
+
+        if (!isSecureField && settings.isAutoCorrectEnabled() && isLetter) {
+            currentWord.append(text);
+            ic.setComposingText(currentWord, 1);
+            updateSuggestions();
+            if (isShifted && !isCapsLock) {
+                isShifted = false;
+                if (keyboardView != null) keyboardView.setShifted(false);
+            }
+            return;
+        }
+
+        if (!isSecureField && settings.isAutoCorrectEnabled() && currentWord.length() > 0) {
+            commitCurrentWord(ic);
+        }
 
         if (!isSecureField && settings.isUnicodeEnabled()) {
             String styleId = settings.getCurrentStyleId();
             text = UnicodeStyleDatabase.transform(text, styleId);
         }
 
-        if (!isSecureField && settings.isTranslationEnabled()) {
-            composing.append(text);
-            ic.setComposingText(composing, 1);
-            translateAndCommit(ic);
-        } else {
-            ic.commitText(text, 1);
-        }
+        ic.commitText(text, 1);
 
         if (isShifted && !isCapsLock) {
             isShifted = false;
@@ -358,25 +433,27 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 || (code >= 0xFE00 && code <= 0xFE0F);
     }
 
-    private void translateAndCommit(InputConnection ic) {
-        String sourceText = composing.toString();
+    private void translateWord(String word, String suffix) {
+        if (word.isEmpty()) {
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) ic.commitText(suffix, 1);
+            return;
+        }
         String sourceLang = settings.isAutoDetectSource() ? "auto" : settings.getSourceLanguage();
         String targetLang = settings.getDestinationLanguage();
         String apiUrl = settings.getApiUrl();
         String apiKey = settings.getApiKey();
 
         translationManager.setCurrentProvider(settings.getTranslationProvider());
-        translationManager.translate(sourceText, sourceLang, targetLang, apiUrl, apiKey,
+        translationManager.translate(word, sourceLang, targetLang, apiUrl, apiKey,
                 new TranslationManager.TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
                         handler.post(() -> {
                             InputConnection conn = getCurrentInputConnection();
                             if (conn != null) {
-                                conn.finishComposingText();
-                                conn.commitText(translatedText, 1);
+                                conn.commitText(translatedText + suffix, 1);
                             }
-                            composing.setLength(0);
                         });
                     }
 
@@ -385,28 +462,31 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                         handler.post(() -> {
                             InputConnection conn = getCurrentInputConnection();
                             if (conn != null) {
-                                conn.finishComposingText();
-                                conn.commitText(sourceText, 1);
+                                conn.commitText(word + suffix, 1);
                             }
-                            composing.setLength(0);
                         });
                     }
                 });
     }
 
-    private void handleManualTranslation(InputConnection ic) {
-        if (isSecureField) return;
-        CharSequence selected = ic.getSelectedText(0);
-        String text;
-        if (selected != null && selected.length() > 0) {
-            text = selected.toString();
-        } else {
-            text = composing.toString();
-            if (text.isEmpty()) {
-                ic.getExtractedText(new android.view.inputmethod.ExtractedTextRequest(), 0);
-                return;
-            }
+    private void translateWholeInput() {
+        translateWholeInputThenSend(false);
+    }
+
+    private void translateWholeInputThenSend() {
+        translateWholeInputThenSend(true);
+    }
+
+    private void translateWholeInputThenSend(final boolean sendAfter) {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null || isSecureField) return;
+        android.view.inputmethod.ExtractedTextRequest req = new android.view.inputmethod.ExtractedTextRequest();
+        android.view.inputmethod.ExtractedText et = ic.getExtractedText(req, 0);
+        if (et == null || et.text == null || et.text.length() == 0) {
+            if (sendAfter) sendEnterKey();
+            return;
         }
+        String fullText = et.text.toString();
 
         String sourceLang = settings.isAutoDetectSource() ? "auto" : settings.getSourceLanguage();
         String targetLang = settings.getDestinationLanguage();
@@ -414,23 +494,43 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         String apiKey = settings.getApiKey();
 
         translationManager.setCurrentProvider(settings.getTranslationProvider());
-        translationManager.translate(text, sourceLang, targetLang, apiUrl, apiKey,
+        translationManager.translate(fullText, sourceLang, targetLang, apiUrl, apiKey,
                 new TranslationManager.TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
                         handler.post(() -> {
                             InputConnection conn = getCurrentInputConnection();
                             if (conn != null) {
+                                conn.beginBatchEdit();
+                                conn.setSelection(et.startOffset, et.startOffset + fullText.length());
                                 conn.commitText(translatedText, 1);
+                                conn.endBatchEdit();
                             }
+                            if (sendAfter) sendEnterKey();
                         });
                     }
 
                     @Override
                     public void onError(String errorCode, String message) {
-                        Diagnostics.log(errorCode, "JNetIME", "manualTranslate", message);
+                        Diagnostics.log(errorCode, "JNetIME", "translateWholeInput", message);
+                        if (sendAfter) sendEnterKey();
                     }
                 });
+    }
+
+    private void sendEnterKey() {
+        InputConnection conn = getCurrentInputConnection();
+        if (conn != null) {
+            if (settings.isEnterSendsMessage()) {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
+            } else {
+                conn.commitText("\n", 1);
+            }
+        }
+    }
+
+    private void handleManualTranslation(InputConnection ic) {
+        translateWholeInput();
     }
 
     private void toggleEmoji() {
