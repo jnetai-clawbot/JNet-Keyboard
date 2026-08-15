@@ -36,8 +36,10 @@ public class GoogleTranslateProvider implements TranslationProvider {
 
             HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(15000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36");
+            conn.setRequestProperty("Accept", "application/json, text/plain, */*");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(20000);
 
             int code = conn.getResponseCode();
             if (code != 200) {

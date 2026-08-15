@@ -1,5 +1,11 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.1.0
+### Changes
+- Fixed Unicode font not applying when Auto-Correct or Translate Mode is enabled (transform now applied in all typing paths)
+- Fixed auto-suggest word bar: now embedded directly above the keyboard (like Gboard) so it always shows while typing
+- Fixed globe translate: more reliable free Google endpoint (User-Agent header) and whole-input translation now handles composing text
+
 ## 2026-08-15 - v1.0.9
 ### Changes
 - Fixed all dropdown/spinner boxes showing blank text: now dark background with white bold text

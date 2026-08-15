@@ -74,6 +74,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        suggestionBar = new LinearLayout(this);
+        suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
+        suggestionBar.setBackgroundColor(0xFF2D2D2D);
+        suggestionBar.setVisibility(View.GONE);
+        suggestionBar.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(suggestionBar);
+
         keyboardView = new JNetKeyboardView(this);
         keyboardView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -84,17 +92,6 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         loadKeyboards();
         applyTheme();
         return root;
-    }
-
-    @Override
-    public View onCreateCandidatesView() {
-        suggestionBar = new LinearLayout(this);
-        suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
-        suggestionBar.setBackgroundColor(0xFF2D2D2D);
-        suggestionBar.setVisibility(View.GONE);
-        suggestionBar.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        return suggestionBar;
     }
 
     private void loadKeyboards() {
@@ -157,16 +154,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void updateSuggestions() {
+        if (suggestionBar == null) return;
         String typed = currentWord.toString();
         java.util.List<String> suggestions = WordDictionary.getSuggestions(typed);
-        if (suggestions.isEmpty()) {
+        if (suggestions.isEmpty() || typed.length() < 1) {
             hideSuggestions();
             return;
         }
-        setCandidatesViewShown(true);
-        if (suggestionBar == null) return;
         suggestionBar.removeAllViews();
-        suggestionBar.setVisibility(View.VISIBLE);
         for (String s : suggestions) {
             TextView tv = new TextView(this);
             tv.setText(s);
@@ -177,6 +172,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             tv.setOnClickListener(v -> acceptSuggestion(s));
             suggestionBar.addView(tv);
         }
+        suggestionBar.setVisibility(View.VISIBLE);
     }
 
     private void acceptSuggestion(String suggestion) {
@@ -184,11 +180,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (ic == null) return;
         currentWord.setLength(0);
         hideSuggestions();
-        ic.commitText(suggestion + " ", 1);
+        String text = suggestion + " ";
+        if (!isSecureField && settings.isUnicodeEnabled() && !"normal".equals(settings.getCurrentStyleId())) {
+            text = UnicodeStyleDatabase.transform(suggestion, settings.getCurrentStyleId()) + " ";
+        }
+        ic.commitText(text, 1);
     }
 
     private void hideSuggestions() {
-        setCandidatesViewShown(false);
         if (suggestionBar != null) {
             suggestionBar.removeAllViews();
             suggestionBar.setVisibility(View.GONE);
@@ -201,13 +200,13 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         currentWord.setLength(0);
         hideSuggestions();
         String corrected = WordDictionary.correct(word);
-        if (corrected != null && !corrected.equals(word)) {
-            ic.setComposingText(corrected, 1);
-            ic.finishComposingText();
-        } else {
-            ic.setComposingText(word, 1);
-            ic.finishComposingText();
+        String commit = (corrected != null) ? corrected : word;
+        if (!isSecureField && settings.isUnicodeEnabled()
+                && !"normal".equals(settings.getCurrentStyleId())) {
+            commit = UnicodeStyleDatabase.transform(commit, settings.getCurrentStyleId());
         }
+        ic.setComposingText(commit, 1);
+        ic.finishComposingText();
     }
 
     private boolean isSecureInputType(EditorInfo info) {
@@ -387,6 +386,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         String text = String.valueOf((char) primaryCode);
         boolean isLetter = Character.isLetter(primaryCode);
 
+        boolean unicodeOn = !isSecureField && settings.isUnicodeEnabled()
+                && !"normal".equals(settings.getCurrentStyleId());
+
         if (!isSecureField && settings.isTranslationEnabled() && isLetter) {
             composing.append(text);
             ic.setComposingText(composing, 1);
@@ -399,7 +401,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
         if (!isSecureField && settings.isAutoCorrectEnabled() && isLetter) {
             currentWord.append(text);
-            ic.setComposingText(currentWord, 1);
+            String display = unicodeOn ? UnicodeStyleDatabase.transform(currentWord.toString(), settings.getCurrentStyleId())
+                    : currentWord.toString();
+            ic.setComposingText(display, 1);
             updateSuggestions();
             if (isShifted && !isCapsLock) {
                 isShifted = false;
@@ -412,9 +416,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             commitCurrentWord(ic);
         }
 
-        if (!isSecureField && settings.isUnicodeEnabled()) {
-            String styleId = settings.getCurrentStyleId();
-            text = UnicodeStyleDatabase.transform(text, styleId);
+        if (unicodeOn) {
+            text = UnicodeStyleDatabase.transform(text, settings.getCurrentStyleId());
         }
 
         ic.commitText(text, 1);
@@ -480,13 +483,23 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void translateWholeInputThenSend(final boolean sendAfter) {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null || isSecureField) return;
+        if (composing.length() > 0) {
+            ic.finishComposingText();
+            composing.setLength(0);
+        }
         android.view.inputmethod.ExtractedTextRequest req = new android.view.inputmethod.ExtractedTextRequest();
-        android.view.inputmethod.ExtractedText et = ic.getExtractedText(req, 0);
+        req.flags = 0;
+        android.view.inputmethod.ExtractedText et = ic.getExtractedText(req,
+                android.view.inputmethod.InputConnection.GET_EXTRACTED_TEXT_MONITOR);
         if (et == null || et.text == null || et.text.length() == 0) {
             if (sendAfter) sendEnterKey();
             return;
         }
         String fullText = et.text.toString();
+        if (fullText.trim().isEmpty()) {
+            if (sendAfter) sendEnterKey();
+            return;
+        }
 
         String sourceLang = settings.isAutoDetectSource() ? "auto" : settings.getSourceLanguage();
         String targetLang = settings.getDestinationLanguage();
