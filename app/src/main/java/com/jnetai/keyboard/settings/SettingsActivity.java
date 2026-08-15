@@ -188,6 +188,7 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Number Row", settings.isNumberRowEnabled(), (btn, checked) -> settings.setNumberRowEnabled(checked));
         addSwitch("Haptic Feedback", settings.isHapticFeedback(), (btn, checked) -> settings.setHapticFeedback(checked));
         addSwitch("Key Sound", settings.isKeySound(), (btn, checked) -> settings.setKeySound(checked));
+        addSwitch("Enter Key Sends Message", settings.isEnterSendsMessage(), (btn, checked) -> settings.setEnterSendsMessage(checked));
         addSwitch("Auto-Correct / Suggestions", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
     }
 
@@ -495,7 +496,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.0.4");
+        addLabel("Version v1.0.5");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

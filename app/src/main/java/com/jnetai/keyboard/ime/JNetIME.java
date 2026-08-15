@@ -48,6 +48,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private boolean isEmojiPage = false;
     private StringBuilder composing = new StringBuilder();
     private long lastShiftTime = 0;
+    private long lastPressTime = 0;
     private Handler handler = new Handler(Looper.getMainLooper());
     private CompletionInfo[] completions;
 
@@ -203,6 +204,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public void onPress(int primaryCode) {
+        lastPressTime = System.currentTimeMillis();
         if (settings.isHapticFeedback()) {
             performHapticFeedback();
         }
@@ -300,7 +302,11 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             ic.finishComposingText();
             composing.setLength(0);
         }
-        sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
+        if (settings.isEnterSendsMessage()) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
+        } else {
+            ic.commitText("\n", 1);
+        }
     }
 
     private void handleSpace(InputConnection ic) {
@@ -308,6 +314,18 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleCharacter(int primaryCode, InputConnection ic) {
+        boolean isEmoji = isEmojiCodePoint(primaryCode);
+
+        if (isEmoji) {
+            String text = new String(Character.toChars(primaryCode));
+            if (isEmojiPage && System.currentTimeMillis() - lastPressTime > 600) {
+                ic.commitText(text + text + text, 1);
+            } else {
+                ic.commitText(text, 1);
+            }
+            return;
+        }
+
         if (isShifted || isCapsLock) {
             primaryCode = Character.toUpperCase(primaryCode);
         }
@@ -330,6 +348,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             isShifted = false;
             if (keyboardView != null) keyboardView.setShifted(false);
         }
+    }
+
+    private boolean isEmojiCodePoint(int code) {
+        return code > 0xFFFF
+                || (code >= 0x2600 && code <= 0x27BF)
+                || (code >= 0x2B00 && code <= 0x2BFF)
+                || (code >= 0x1F000 && code <= 0x1FFFF)
+                || (code >= 0xFE00 && code <= 0xFE0F);
     }
 
     private void translateAndCommit(InputConnection ic) {

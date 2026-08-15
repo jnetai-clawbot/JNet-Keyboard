@@ -89,6 +89,9 @@ public class KeyboardSettings {
     public boolean isAutoCorrectEnabled() { return prefs.getBoolean("auto_correct", false); }
     public void setAutoCorrectEnabled(boolean enabled) { prefs.edit().putBoolean("auto_correct", enabled).apply(); }
 
+    public boolean isEnterSendsMessage() { return prefs.getBoolean("enter_sends_message", true); }
+    public void setEnterSendsMessage(boolean enabled) { prefs.edit().putBoolean("enter_sends_message", enabled).apply(); }
+
     public boolean isStyleFavourite(String styleId) {
         return prefs.getBoolean("fav_" + styleId, false);
     }

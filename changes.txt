@@ -1,5 +1,14 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.5
+### Changes
+- Added "Enter Key Sends Message" toggle in General settings (ON by default)
+  - ON: Enter sends the message / submits (works in chat apps and browser URL bar)
+  - OFF: Enter inserts a new line
+- Enter key icon enlarged further to match the settings cog and other icons
+- Fixed emojis being inserted as Chinese/garbled text (was codepoint truncation, now uses correct surrogate pairs)
+- Long-press an emoji button to insert 3 copies
+
 ## 2026-08-15 - v1.0.4
 ### Changes
 - Centered shift row (2nd row from bottom) with 3%p horizontal gap to match other rows
