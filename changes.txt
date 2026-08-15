@@ -1,5 +1,14 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.4
+### Changes
+- Centered shift row (2nd row from bottom) with 3%p horizontal gap to match other rows
+- Added many new unicode fonts: Double Underline, Overline, Double Overline, Slashed, Dotted, Diaeresis, Tilde, Tilde Below, Macron, Acute, Grave, Circumflex, Caron, Breve, Ring, Cedilla, Ogonek, Comma, Negative Squared, Zalgo, Halfwidth, Tiny
+- Enter key icon now rendered larger (same size as settings cog) via custom KeyboardView
+- Enter key now sends the Enter key event (like pressing enter) instead of inserting a newline
+- Fixed "Check for Updates" button to open the GitHub latest release page directly
+- About section now shows version v1.0.4
+
 ## 2026-08-14 - v1.0.2
 ### Bug Fixes
 - Fixed crash: onCreateCandidatesView() was returning a view already attached to root layout

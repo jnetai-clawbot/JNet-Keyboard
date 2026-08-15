@@ -56,6 +56,28 @@ public class UnicodeStyleDatabase {
         registerStyle("inverted", "Inverted", "ɥǝllo", "Flipped", invertedMappings());
         registerStyle("strikethrough", "Strikethrough", "h̶e̶l̶l̶o̶", "Combining", strikethroughMappings());
         registerStyle("underline", "Underline", "h̲e̲l̲l̲o̲", "Combining", underlineMappings());
+        registerStyle("double-underline", "Double Underline", "h̳e̳l̳l̳o̳", "Combining", doubleUnderlineMappings());
+        registerStyle("overline", "Overline", "h̅e̅l̅l̅o̅", "Combining", overlineMappings());
+        registerStyle("double-overline", "Double Overline", "h̿e̿l̿l̿o̿", "Combining", doubleOverlineMappings());
+        registerStyle("slashed", "Slashed", "h̸e̸l̸l̸o̸", "Combining", slashedMappings());
+        registerStyle("dotted", "Dotted", "ḣėl̇l̇ȯ", "Combining", dottedMappings());
+        registerStyle("diaeresis", "Diaeresis", "ḧël̈l̈ö", "Combining", diaeresisMappings());
+        registerStyle("tilde", "Tilde", "h̃ẽl̃l̃õ", "Combining", tildeMappings());
+        registerStyle("tilde-below", "Tilde Below", "h̰ḛl̰l̰o̰", "Combining", tildeBelowMappings());
+        registerStyle("macron", "Macron", "h̄ēl̄l̄ō", "Combining", macronMappings());
+        registerStyle("acute", "Acute", "h́éĺĺó", "Combining", acuteMappings());
+        registerStyle("grave", "Grave", "h̀èl̀l̀ò", "Combining", graveMappings());
+        registerStyle("circumflex", "Circumflex", "ĥêl̂l̂ô", "Combining", circumflexMappings());
+        registerStyle("caron", "Caron", "ȟěľľǒ", "Combining", caronMappings());
+        registerStyle("breve", "Breve", "h̆ĕl̆l̆ŏ", "Combining", breveMappings());
+        registerStyle("ring", "Ring", "h̊e̊l̊l̊o̊", "Combining", ringMappings());
+        registerStyle("cedilla", "Cedilla", "ḩȩļļo̧", "Combining", cedillaMappings());
+        registerStyle("ogonek", "Ogonek", "h̨ęl̨l̨ǫ", "Combining", ogonekMappings());
+        registerStyle("comma", "Comma", "h̓e̓l̓l̓o̓", "Combining", commaMappings());
+        registerStyle("negative-squared", "Negative Squared", "🅗🅔🅛🅛🅞", "Enclosed", negativeSquaredMappings());
+        registerStyle("zalgo", "Zalgo", "h̷̛̖e̵̱̓l̶̲̕l̶̲̕o̵̱̓", "Combining", zalgoMappings());
+        registerStyle("halfwidth", "Halfwidth", "ﾊﾞﾚﾚﾛ", "Halfwidth", halfwidthMappings());
+        registerStyle("tiny", "Tiny", "ʰᵉˡˡᵒ", "Small Caps", tinyMappings());
         registerStyle("cursive", "Cursive", "𝒽𝑒𝓁𝓁𝑜", "Script", cursiveMappings());
         registerStyle("gothic", "Gothic", "𝔥𝔢𝔩𝔩𝔬", "Fraktur", gothicMappings());
         registerStyle("typewriter", "Typewriter", "𝚑𝚎𝚕𝚕𝚘", "Monospace", typewriterMappings());
@@ -563,5 +585,158 @@ public class UnicodeStyleDatabase {
 
     private static Map<Character, String> normalMappings() {
         return new LinkedHashMap<>();
+    }
+
+    private static Map<Character, String> combiningMappings(String mark) {
+        Map<Character, String> m = new LinkedHashMap<>();
+        for (char c = 'A'; c <= 'Z'; c++) m.put(c, c + mark);
+        for (char c = 'a'; c <= 'z'; c++) m.put(c, c + mark);
+        for (char c = '0'; c <= '9'; c++) m.put(c, c + mark);
+        return m;
+    }
+
+    private static Map<Character, String> doubleUnderlineMappings() {
+        return combiningMappings("\u0333");
+    }
+
+    private static Map<Character, String> overlineMappings() {
+        return combiningMappings("\u0305");
+    }
+
+    private static Map<Character, String> doubleOverlineMappings() {
+        return combiningMappings("\u033F");
+    }
+
+    private static Map<Character, String> slashedMappings() {
+        return combiningMappings("\u0338");
+    }
+
+    private static Map<Character, String> dottedMappings() {
+        return combiningMappings("\u0307");
+    }
+
+    private static Map<Character, String> diaeresisMappings() {
+        return combiningMappings("\u0308");
+    }
+
+    private static Map<Character, String> tildeMappings() {
+        return combiningMappings("\u0303");
+    }
+
+    private static Map<Character, String> tildeBelowMappings() {
+        return combiningMappings("\u0330");
+    }
+
+    private static Map<Character, String> macronMappings() {
+        return combiningMappings("\u0304");
+    }
+
+    private static Map<Character, String> acuteMappings() {
+        return combiningMappings("\u0301");
+    }
+
+    private static Map<Character, String> graveMappings() {
+        return combiningMappings("\u0300");
+    }
+
+    private static Map<Character, String> circumflexMappings() {
+        return combiningMappings("\u0302");
+    }
+
+    private static Map<Character, String> caronMappings() {
+        return combiningMappings("\u030C");
+    }
+
+    private static Map<Character, String> breveMappings() {
+        return combiningMappings("\u0306");
+    }
+
+    private static Map<Character, String> ringMappings() {
+        return combiningMappings("\u030A");
+    }
+
+    private static Map<Character, String> cedillaMappings() {
+        return combiningMappings("\u0327");
+    }
+
+    private static Map<Character, String> ogonekMappings() {
+        return combiningMappings("\u0328");
+    }
+
+    private static Map<Character, String> commaMappings() {
+        return combiningMappings("\u0313");
+    }
+
+    private static Map<Character, String> negativeSquaredMappings() {
+        Map<Character, String> m = new LinkedHashMap<>();
+        m.put('A', "🅰"); m.put('B', "🅱"); m.put('C', "🅲"); m.put('D', "🅳"); m.put('E', "🅴");
+        m.put('F', "🅵"); m.put('G', "🅶"); m.put('H', "🅷"); m.put('I', "🅸"); m.put('J', "🅹");
+        m.put('K', "🅺"); m.put('L', "🅻"); m.put('M', "🅼"); m.put('N', "🅽"); m.put('O', "🅾");
+        m.put('P', "🅿"); m.put('Q', "🆀"); m.put('R', "🆁"); m.put('S', "🆂"); m.put('T', "🆃");
+        m.put('U', "🆄"); m.put('V', "🆅"); m.put('W', "🆆"); m.put('X', "🆇"); m.put('Y', "🆈");
+        m.put('Z', "🆉");
+        m.put('a', "🅰"); m.put('b', "🅱"); m.put('c', "🅲"); m.put('d', "🅳"); m.put('e', "🅴");
+        m.put('f', "🅵"); m.put('g', "🅶"); m.put('h', "🅷"); m.put('i', "🅸"); m.put('j', "🅹");
+        m.put('k', "🅺"); m.put('l', "🅻"); m.put('m', "🅼"); m.put('n', "🅽"); m.put('o', "🅾");
+        m.put('p', "🅿"); m.put('q', "🆀"); m.put('r', "🆁"); m.put('s', "🆂"); m.put('t', "🆃");
+        m.put('u', "🆄"); m.put('v', "🆅"); m.put('w', "🆆"); m.put('x', "🆇"); m.put('y', "🆈");
+        m.put('z', "🆉");
+        return m;
+    }
+
+    private static Map<Character, String> zalgoMappings() {
+        Map<Character, String> m = new LinkedHashMap<>();
+        String[] zalgo = {"\u0300","\u0301","\u0302","\u0303","\u0304","\u0305","\u0306","\u0307",
+                "\u0308","\u0309","\u030A","\u030B","\u030C","\u030D","\u030E","\u030F",
+                "\u0310","\u0311","\u0312","\u0313","\u0314","\u0315","\u0316","\u0317",
+                "\u0318","\u0319","\u031A","\u031B","\u031C","\u031D","\u031E","\u031F",
+                "\u0320","\u0321","\u0322","\u0323","\u0324","\u0325","\u0326","\u0327"};
+        for (char c = 'A'; c <= 'Z'; c++) {
+            StringBuilder sb = new StringBuilder().append(c);
+            for (int i = 0; i < 3; i++) sb.append(zalgo[(c + i * 7) % zalgo.length]);
+            m.put(c, sb.toString());
+        }
+        for (char c = 'a'; c <= 'z'; c++) {
+            StringBuilder sb = new StringBuilder().append(c);
+            for (int i = 0; i < 3; i++) sb.append(zalgo[(c + i * 7) % zalgo.length]);
+            m.put(c, sb.toString());
+        }
+        return m;
+    }
+
+    private static Map<Character, String> halfwidthMappings() {
+        Map<Character, String> m = new LinkedHashMap<>();
+        m.put('A', "A"); m.put('B', "B"); m.put('C', "C"); m.put('D', "D"); m.put('E', "E");
+        m.put('F', "F"); m.put('G', "G"); m.put('H', "H"); m.put('I', "I"); m.put('J', "J");
+        m.put('K', "K"); m.put('L', "L"); m.put('M', "M"); m.put('N', "N"); m.put('O', "O");
+        m.put('P', "P"); m.put('Q', "Q"); m.put('R', "R"); m.put('S', "S"); m.put('T', "T");
+        m.put('U', "U"); m.put('V', "V"); m.put('W', "W"); m.put('X', "X"); m.put('Y', "Y");
+        m.put('Z', "Z");
+        m.put('a', "a"); m.put('b', "b"); m.put('c', "c"); m.put('d', "d"); m.put('e', "e");
+        m.put('f', "f"); m.put('g', "g"); m.put('h', "h"); m.put('i', "i"); m.put('j', "j");
+        m.put('k', "k"); m.put('l', "l"); m.put('m', "m"); m.put('n', "n"); m.put('o', "o");
+        m.put('p', "p"); m.put('q', "q"); m.put('r', "r"); m.put('s', "s"); m.put('t', "t");
+        m.put('u', "u"); m.put('v', "v"); m.put('w', "w"); m.put('x', "x"); m.put('y', "y");
+        m.put('z', "z");
+        m.put('0', "0"); m.put('1', "1"); m.put('2', "2"); m.put('3', "3"); m.put('4', "4");
+        m.put('5', "5"); m.put('6', "6"); m.put('7', "7"); m.put('8', "8"); m.put('9', "9");
+        return m;
+    }
+
+    private static Map<Character, String> tinyMappings() {
+        Map<Character, String> m = new LinkedHashMap<>();
+        m.put('a', "ᵃ"); m.put('b', "ᵇ"); m.put('c', "ᶜ"); m.put('d', "ᵈ"); m.put('e', "ᵉ");
+        m.put('f', "ᶠ"); m.put('g', "ᵍ"); m.put('h', "ʰ"); m.put('i', "ⁱ"); m.put('j', "ʲ");
+        m.put('k', "ᵏ"); m.put('l', "ˡ"); m.put('m', "ᵐ"); m.put('n', "ⁿ"); m.put('o', "ᵒ");
+        m.put('p', "ᵖ"); m.put('q', "ᑫ"); m.put('r', "ʳ"); m.put('s', "ˢ"); m.put('t', "ᵗ");
+        m.put('u', "ᵘ"); m.put('v', "ᵛ"); m.put('w', "ʷ"); m.put('x', "ˣ"); m.put('y', "ʸ");
+        m.put('z', "ᶻ");
+        m.put('A', "ᴬ"); m.put('B', "ᴮ"); m.put('C', "ᶜ"); m.put('D', "ᴰ"); m.put('E', "ᴱ");
+        m.put('F', "ᶠ"); m.put('G', "ᴳ"); m.put('H', "ᴴ"); m.put('I', "ᴵ"); m.put('J', "ᴶ");
+        m.put('K', "ᴷ"); m.put('L', "ᴸ"); m.put('M', "ᴹ"); m.put('N', "ᴺ"); m.put('O', "ᴼ");
+        m.put('P', "ᴾ"); m.put('Q', "ᑫ"); m.put('R', "ᴿ"); m.put('S', "ˢ"); m.put('T', "ᵀ");
+        m.put('U', "ᵁ"); m.put('V', "ⱽ"); m.put('W', "ᵂ"); m.put('X', "ˣ"); m.put('Y', "ʸ");
+        m.put('Z', "ᶻ");
+        return m;
     }
 }

@@ -16,7 +16,6 @@ import com.jnetai.keyboard.remapping.KeyRemapping;
 import com.jnetai.keyboard.symbols.SymbolDatabase;
 import com.jnetai.keyboard.translation.TranslationManager;
 import com.jnetai.keyboard.unicode.UnicodeStyleDatabase;
-import com.jnetai.keyboard.update.UpdateChecker;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -496,32 +495,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.0.0");
+        addLabel("Version v1.0.4");
 
         addButton("Check for Updates", v -> {
-            UpdateChecker checker = new UpdateChecker("jnetai-clawbot", "JNet-Keyboard", "v1.0.0");
-            checker.checkForUpdate(new UpdateChecker.UpdateCallback() {
-                @Override
-                public void onResult(boolean updateAvailable, String latestTag, String releaseUrl) {
-                    runOnUiThread(() -> {
-                        if (updateAvailable) {
-                            addLabel("Update available: " + latestTag);
-                            if (releaseUrl != null) {
-                                addButton("Open Release Page", v2 -> {
-                                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl));
-                                    startActivity(intent);
-                                });
-                            }
-                        } else {
-                            addLabel("You are up to date (" + latestTag + ")");
-                        }
-                    });
-                }
-                @Override
-                public void onError(String message) {
-                    runOnUiThread(() -> addLabel("Update check failed: " + message));
-                }
-            });
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/jnetai-clawbot/JNet-Keyboard/releases/latest"));
+            startActivity(intent);
         });
 
         addButton("Share App", v -> {

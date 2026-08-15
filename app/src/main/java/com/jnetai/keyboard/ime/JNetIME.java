@@ -71,7 +71,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        keyboardView = new KeyboardView(this, null);
+        keyboardView = new JNetKeyboardView(this);
         keyboardView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         keyboardView.setOnKeyboardActionListener(this);
@@ -296,7 +296,11 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleEnter(InputConnection ic) {
-        ic.commitText("\n", 1);
+        if (composing.length() > 0) {
+            ic.finishComposingText();
+            composing.setLength(0);
+        }
+        sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
     }
 
     private void handleSpace(InputConnection ic) {
