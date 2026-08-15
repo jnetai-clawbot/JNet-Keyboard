@@ -1,8 +1,5 @@
 package com.jnetai.keyboard.translation;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.jnetai.keyboard.diagnostics.Diagnostics;
 import com.jnetai.keyboard.diagnostics.ErrorCodes;
 import java.io.BufferedReader;
@@ -12,24 +9,22 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-public class GoogleTranslateProvider implements TranslationProvider {
+public class MyMemoryProvider implements TranslationProvider {
 
     @Override
-    public String getName() { return "google"; }
+    public String getName() { return "mymemory"; }
 
     @Override
-    public String getDisplayName() { return "Google Translate"; }
+    public String getDisplayName() { return "MyMemory"; }
 
     @Override
     public String translate(String text, String sourceLang, String targetLang, String apiUrl, String apiKey) throws TranslationException {
         try {
-            String src = (sourceLang != null && !sourceLang.isEmpty() && !"auto".equals(sourceLang)) ? sourceLang : "auto";
-            String baseUrl = (apiUrl != null && !apiUrl.isEmpty())
-                    ? apiUrl
-                    : "https://translate.googleapis.com/translate_a/single";
-            String urlStr = baseUrl + "?client=gtx&sl=" + URLEncoder.encode(src, "UTF-8")
-                    + "&tl=" + URLEncoder.encode(targetLang, "UTF-8")
-                    + "&dt=t&q=" + URLEncoder.encode(text, "UTF-8");
+            String src = (sourceLang != null && !sourceLang.isEmpty() && !"auto".equals(sourceLang)) ? sourceLang : "en";
+            String urlStr = "https://api.mymemory.translated.net/get?q="
+                    + URLEncoder.encode(text, "UTF-8")
+                    + "&langpair=" + URLEncoder.encode(src, "UTF-8")
+                    + "|" + URLEncoder.encode(targetLang, "UTF-8");
             if (apiKey != null && !apiKey.isEmpty()) {
                 urlStr += "&key=" + URLEncoder.encode(apiKey, "UTF-8");
             }
@@ -41,7 +36,7 @@ public class GoogleTranslateProvider implements TranslationProvider {
 
             int code = conn.getResponseCode();
             if (code != 200) {
-                Diagnostics.log(ErrorCodes.TR_002, "GoogleTranslate", "translate",
+                Diagnostics.log(ErrorCodes.TR_002, "MyMemory", "translate",
                         "HTTP " + code + " for text length " + text.length());
                 throw new TranslationException(ErrorCodes.TR_002, "Translation API returned HTTP " + code);
             }
@@ -54,8 +49,8 @@ public class GoogleTranslateProvider implements TranslationProvider {
 
             String respStr = response.toString();
             String translated = extractTranslatedText(respStr);
-            if (translated == null) {
-                Diagnostics.log(ErrorCodes.TR_003, "GoogleTranslate", "translate",
+            if (translated == null || translated.isEmpty() || translated.equals("NO QUERY SPECIFIED. PLEASE SPECIFY A QUERY.")) {
+                Diagnostics.log(ErrorCodes.TR_003, "MyMemory", "translate",
                         "Invalid response: " + respStr.substring(0, Math.min(200, respStr.length())));
                 throw new TranslationException(ErrorCodes.TR_003, "Invalid translation response");
             }
@@ -64,39 +59,19 @@ public class GoogleTranslateProvider implements TranslationProvider {
         } catch (TranslationException e) {
             throw e;
         } catch (java.net.SocketTimeoutException e) {
-            Diagnostics.log(ErrorCodes.TR_004, "GoogleTranslate", "translate", e, "Timeout");
+            Diagnostics.log(ErrorCodes.TR_004, "MyMemory", "translate", e, "Timeout");
             throw new TranslationException(ErrorCodes.TR_004, "Translation timed out", e);
         } catch (java.io.IOException e) {
-            Diagnostics.log(ErrorCodes.TR_001, "GoogleTranslate", "translate", e, "Network error");
+            Diagnostics.log(ErrorCodes.TR_001, "MyMemory", "translate", e, "Network error");
             throw new TranslationException(ErrorCodes.TR_001, "Network error: " + e.getMessage(), e);
         } catch (Exception e) {
-            Diagnostics.log(ErrorCodes.TR_002, "GoogleTranslate", "translate", e, "Unexpected error");
+            Diagnostics.log(ErrorCodes.TR_002, "MyMemory", "translate", e, "Unexpected error");
             throw new TranslationException(ErrorCodes.TR_002, "Translation error: " + e.getMessage(), e);
         }
     }
 
     private String extractTranslatedText(String json) {
         try {
-            JsonElement root = new Gson().fromJson(json, JsonElement.class);
-            if (root == null || !root.isJsonArray()) return null;
-            JsonArray outer = root.getAsJsonArray();
-            if (outer.size() == 0) return null;
-            JsonElement seg = outer.get(0);
-            if (seg == null || !seg.isJsonArray()) return null;
-            JsonArray segArr = seg.getAsJsonArray();
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < segArr.size(); i++) {
-                JsonElement item = segArr.get(i);
-                if (item == null || !item.isJsonArray()) continue;
-                JsonArray itemArr = item.getAsJsonArray();
-                if (itemArr.size() > 0) {
-                    JsonElement first = itemArr.get(0);
-                    if (first != null && first.isJsonPrimitive()) {
-                        sb.append(first.getAsString());
-                    }
-                }
-            }
-            if (sb.length() > 0) return sb.toString();
             int idx = json.indexOf("\"translatedText\"");
             if (idx < 0) return null;
             int colon = json.indexOf(":", idx);

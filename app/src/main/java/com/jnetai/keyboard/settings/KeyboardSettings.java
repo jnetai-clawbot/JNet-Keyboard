@@ -68,7 +68,7 @@ public class KeyboardSettings {
     public String getDestinationLanguage() { return prefs.getString("dest_lang", "en"); }
     public void setDestinationLanguage(String lang) { prefs.edit().putString("dest_lang", lang).apply(); }
 
-    public String getTranslationProvider() { return prefs.getString("translation_provider", "libretranslate"); }
+    public String getTranslationProvider() { return prefs.getString("translation_provider", "google"); }
     public void setTranslationProvider(String provider) { prefs.edit().putString("translation_provider", provider).apply(); }
 
     public String getApiUrl() { return prefs.getString("api_url", ""); }

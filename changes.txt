@@ -1,5 +1,11 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.8
+### Changes
+- Google Translate is now the default translation provider and works for free (no API key needed)
+- Translation provider list now shows: Google Translate, LibreTranslate, MyMemory (all free options)
+- Source and destination language pickers now use friendly names (e.g. "France / French") with language codes used internally
+
 ## 2026-08-15 - v1.0.7
 ### Changes
 - "Translate To" language is now a dropdown list in Translation settings (100+ languages)

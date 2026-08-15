@@ -24,110 +24,110 @@ import java.util.List;
 public class SettingsActivity extends AppCompatActivity {
     private static final String[][] LANGS = {
             {"auto", "Auto Detect"},
-            {"en", "English"},
-            {"fr", "French"},
-            {"de", "German"},
-            {"es", "Spanish"},
-            {"it", "Italian"},
-            {"pt", "Portuguese"},
-            {"nl", "Dutch"},
-            {"ru", "Russian"},
-            {"uk", "Ukrainian"},
-            {"pl", "Polish"},
-            {"cs", "Czech"},
-            {"sk", "Slovak"},
-            {"ro", "Romanian"},
-            {"hu", "Hungarian"},
-            {"bg", "Bulgarian"},
-            {"sr", "Serbian"},
-            {"hr", "Croatian"},
-            {"sl", "Slovenian"},
-            {"el", "Greek"},
-            {"tr", "Turkish"},
-            {"ar", "Arabic"},
-            {"he", "Hebrew"},
-            {"fa", "Persian"},
-            {"hi", "Hindi"},
-            {"bn", "Bengali"},
-            {"ta", "Tamil"},
+            {"en", "England / English"},
+            {"fr", "France / French"},
+            {"de", "Germany / German"},
+            {"es", "Spain / Spanish"},
+            {"it", "Italy / Italian"},
+            {"pt", "Portugal / Portuguese"},
+            {"nl", "Netherlands / Dutch"},
+            {"ru", "Russia / Russian"},
+            {"uk", "Ukraine / Ukrainian"},
+            {"pl", "Poland / Polish"},
+            {"cs", "Czechia / Czech"},
+            {"sk", "Slovakia / Slovak"},
+            {"ro", "Romania / Romanian"},
+            {"hu", "Hungary / Hungarian"},
+            {"bg", "Bulgaria / Bulgarian"},
+            {"sr", "Serbia / Serbian"},
+            {"hr", "Croatia / Croatian"},
+            {"sl", "Slovenia / Slovenian"},
+            {"el", "Greece / Greek"},
+            {"tr", "Turkey / Turkish"},
+            {"ar", "Arabia / Arabic"},
+            {"he", "Israel / Hebrew"},
+            {"fa", "Iran / Persian"},
+            {"hi", "India / Hindi"},
+            {"bn", "Bangladesh / Bengali"},
+            {"ta", "Tamil Nadu / Tamil"},
             {"te", "Telugu"},
             {"kn", "Kannada"},
-            {"ml", "Malayalam"},
-            {"ur", "Urdu"},
+            {"ml", "Kerala / Malayalam"},
+            {"ur", "Pakistan / Urdu"},
             {"pa", "Punjabi"},
             {"gu", "Gujarati"},
-            {"th", "Thai"},
-            {"vi", "Vietnamese"},
-            {"id", "Indonesian"},
-            {"ms", "Malay"},
-            {"tl", "Tagalog"},
-            {"ja", "Japanese"},
-            {"zh", "Chinese"},
-            {"ko", "Korean"},
-            {"af", "Afrikaans"},
-            {"sq", "Albanian"},
-            {"az", "Azerbaijani"},
-            {"be", "Belarusian"},
-            {"bs", "Bosnian"},
-            {"ca", "Catalan"},
+            {"th", "Thailand / Thai"},
+            {"vi", "Vietnam / Vietnamese"},
+            {"id", "Indonesia / Indonesian"},
+            {"ms", "Malaysia / Malay"},
+            {"tl", "Philippines / Tagalog"},
+            {"ja", "Japan / Japanese"},
+            {"zh", "China / Chinese"},
+            {"ko", "South Korea / Korean"},
+            {"af", "South Africa / Afrikaans"},
+            {"sq", "Albania / Albanian"},
+            {"az", "Azerbaijan / Azerbaijani"},
+            {"be", "Belarus / Belarusian"},
+            {"bs", "Bosnia / Bosnian"},
+            {"ca", "Catalonia / Catalan"},
             {"ceb", "Cebuano"},
-            {"cy", "Welsh"},
-            {"da", "Danish"},
+            {"cy", "Wales / Welsh"},
+            {"da", "Denmark / Danish"},
             {"eo", "Esperanto"},
-            {"et", "Estonian"},
-            {"eu", "Basque"},
-            {"fi", "Finnish"},
-            {"fy", "Frisian"},
-            {"ga", "Irish"},
-            {"gd", "Scottish Gaelic"},
-            {"gl", "Galician"},
+            {"et", "Estonia / Estonian"},
+            {"eu", "Basque Country / Basque"},
+            {"fi", "Finland / Finnish"},
+            {"fy", "Friesland / Frisian"},
+            {"ga", "Ireland / Irish"},
+            {"gd", "Scotland / Scottish Gaelic"},
+            {"gl", "Galicia / Galician"},
             {"ha", "Hausa"},
-            {"haw", "Hawaiian"},
+            {"haw", "Hawaii / Hawaiian"},
             {"hmn", "Hmong"},
-            {"ht", "Haitian Creole"},
-            {"hy", "Armenian"},
+            {"ht", "Haiti / Haitian Creole"},
+            {"hy", "Armenia / Armenian"},
             {"ig", "Igbo"},
-            {"is", "Icelandic"},
-            {"jw", "Javanese"},
-            {"ka", "Georgian"},
-            {"kk", "Kazakh"},
-            {"km", "Khmer"},
-            {"ku", "Kurdish"},
-            {"ky", "Kyrgyz"},
+            {"is", "Iceland / Icelandic"},
+            {"jw", "Java / Javanese"},
+            {"ka", "Georgia / Georgian"},
+            {"kk", "Kazakhstan / Kazakh"},
+            {"km", "Cambodia / Khmer"},
+            {"ku", "Kurdistan / Kurdish"},
+            {"ky", "Kyrgyzstan / Kyrgyz"},
             {"la", "Latin"},
-            {"lb", "Luxembourgish"},
-            {"lo", "Lao"},
-            {"lt", "Lithuanian"},
-            {"lv", "Latvian"},
-            {"mg", "Malagasy"},
-            {"mi", "Maori"},
-            {"mk", "Macedonian"},
-            {"mn", "Mongolian"},
-            {"mr", "Marathi"},
-            {"mt", "Maltese"},
-            {"my", "Burmese"},
-            {"ne", "Nepali"},
-            {"no", "Norwegian"},
+            {"lb", "Luxembourg / Luxembourgish"},
+            {"lo", "Laos / Lao"},
+            {"lt", "Lithuania / Lithuanian"},
+            {"lv", "Latvia / Latvian"},
+            {"mg", "Madagascar / Malagasy"},
+            {"mi", "New Zealand / Maori"},
+            {"mk", "North Macedonia / Macedonian"},
+            {"mn", "Mongolia / Mongolian"},
+            {"mr", "Maharashtra / Marathi"},
+            {"mt", "Malta / Maltese"},
+            {"my", "Myanmar / Burmese"},
+            {"ne", "Nepal / Nepali"},
+            {"no", "Norway / Norwegian"},
             {"ny", "Chichewa"},
-            {"or", "Odia"},
-            {"ps", "Pashto"},
-            {"si", "Sinhala"},
-            {"sm", "Samoan"},
-            {"sn", "Shona"},
-            {"so", "Somali"},
-            {"st", "Sesotho"},
+            {"or", "Odisha / Odia"},
+            {"ps", "Afghanistan / Pashto"},
+            {"si", "Sri Lanka / Sinhala"},
+            {"sm", "Samoa / Samoan"},
+            {"sn", "Zimbabwe / Shona"},
+            {"so", "Somalia / Somali"},
+            {"st", "Lesotho / Sesotho"},
             {"su", "Sundanese"},
-            {"sv", "Swedish"},
-            {"sw", "Swahili"},
-            {"tg", "Tajik"},
-            {"tk", "Turkmen"},
-            {"tt", "Tatar"},
+            {"sv", "Sweden / Swedish"},
+            {"sw", "East Africa / Swahili"},
+            {"tg", "Tajikistan / Tajik"},
+            {"tk", "Turkmenistan / Turkmen"},
+            {"tt", "Tatarstan / Tatar"},
             {"ug", "Uyghur"},
-            {"uz", "Uzbek"},
-            {"xh", "Xhosa"},
+            {"uz", "Uzbekistan / Uzbek"},
+            {"xh", "South Africa / Xhosa"},
             {"yi", "Yiddish"},
-            {"yo", "Yoruba"},
-            {"zu", "Zulu"},
+            {"yo", "Nigeria / Yoruba"},
+            {"zu", "South Africa / Zulu"},
     };
     private KeyboardSettings settings;
     private LinearLayout contentLayout;
@@ -373,13 +373,24 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Enable Translation", settings.isTranslationEnabled(),
                 (btn, checked) -> settings.setTranslationEnabled(checked));
 
-        String[] providers = {"LibreTranslate", "Google Translate"};
+        String[] providers = {"Google Translate", "LibreTranslate", "MyMemory"};
         String currentProvider = settings.getTranslationProvider();
-        addSpinner("Translation Provider", providers,
-                "libretranslate".equals(currentProvider) ? "LibreTranslate" : "Google Translate",
+        String providerDisplay;
+        if ("libretranslate".equals(currentProvider)) {
+            providerDisplay = "LibreTranslate";
+        } else if ("mymemory".equals(currentProvider)) {
+            providerDisplay = "MyMemory";
+        } else {
+            providerDisplay = "Google Translate";
+        }
+        addSpinner("Translation Provider", providers, providerDisplay,
                 new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                settings.setTranslationProvider(pos == 0 ? "libretranslate" : "google");
+                switch (pos) {
+                    case 1: settings.setTranslationProvider("libretranslate"); break;
+                    case 2: settings.setTranslationProvider("mymemory"); break;
+                    default: settings.setTranslationProvider("google"); break;
+                }
             }
             @Override public void onNothingSelected(AdapterView<?> p) {}
         });
@@ -387,16 +398,32 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Auto-Detect Source Language", settings.isAutoDetectSource(),
                 (btn, checked) -> settings.setAutoDetectSource(checked));
 
-        addEditText("Source Language (e.g. en, fr, de)", settings.getSourceLanguage(),
-                (v, actionId, event) -> {
-                    settings.setSourceLanguage(((EditText) v).getText().toString());
-                    return false;
-                });
+        addLabel("Translate From (source language)");
+        Spinner srcSpinner = new Spinner(this);
+        final String[] srcNames = new String[LANGS.length];
+        for (int i = 0; i < LANGS.length; i++) srcNames[i] = LANGS[i][1];
+        ArrayAdapter<String> srcAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, srcNames);
+        srcAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        srcSpinner.setAdapter(srcAdapter);
+        String currentSrc = settings.getSourceLanguage();
+        for (int i = 0; i < LANGS.length; i++) {
+            if (LANGS[i][0].equals(currentSrc)) {
+                srcSpinner.setSelection(i);
+                break;
+            }
+        }
+        srcSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                settings.setSourceLanguage(LANGS[pos][0]);
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {}
+        });
+        contentLayout.addView(srcSpinner);
 
         addLabel("Translate To (destination language)");
         Spinner destSpinner = new Spinner(this);
         final String[] destNames = new String[LANGS.length];
-        for (int i = 0; i < LANGS.length; i++) destNames[i] = LANGS[i][1] + " (" + LANGS[i][0] + ")";
+        for (int i = 0; i < LANGS.length; i++) destNames[i] = LANGS[i][1];
         ArrayAdapter<String> destAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, destNames);
         destAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         destSpinner.setAdapter(destAdapter);
@@ -619,7 +646,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.0.7");
+        addLabel("Version v1.0.8");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

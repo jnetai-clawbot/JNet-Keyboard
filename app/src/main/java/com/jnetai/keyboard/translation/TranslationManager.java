@@ -10,11 +10,12 @@ import java.util.concurrent.Executors;
 public class TranslationManager {
     private final Map<String, TranslationProvider> providers = new LinkedHashMap<>();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private String currentProviderName = "libretranslate";
+    private String currentProviderName = "google";
 
     public TranslationManager() {
-        providers.put("libretranslate", new LibreTranslateProvider());
         providers.put("google", new GoogleTranslateProvider());
+        providers.put("libretranslate", new LibreTranslateProvider());
+        providers.put("mymemory", new MyMemoryProvider());
     }
 
     public TranslationProvider getCurrentProvider() {
