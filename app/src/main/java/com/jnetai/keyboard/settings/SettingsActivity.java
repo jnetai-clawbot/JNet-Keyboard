@@ -349,7 +349,8 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Haptic Feedback", settings.isHapticFeedback(), (btn, checked) -> settings.setHapticFeedback(checked));
         addSwitch("Key Sound", settings.isKeySound(), (btn, checked) -> settings.setKeySound(checked));
         addSwitch("Enter Key Sends Message", settings.isEnterSendsMessage(), (btn, checked) -> settings.setEnterSendsMessage(checked));
-        addSwitch("Auto-Correct / Suggestions", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
+        addSwitch("Word Suggestions (suggest only)", settings.isSuggestionsEnabled(), (btn, checked) -> settings.setSuggestionsEnabled(checked));
+        addSwitch("Auto-Correct (change to nearest word)", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
     }
 
     private void buildUnicode() {
@@ -705,7 +706,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.0");
+        addLabel("Version v1.1.1");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

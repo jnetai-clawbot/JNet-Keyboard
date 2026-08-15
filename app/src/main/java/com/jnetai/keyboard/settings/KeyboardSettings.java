@@ -59,10 +59,10 @@ public class KeyboardSettings {
     public boolean isTranslationEnabled() { return prefs.getBoolean("translation_enabled", false); }
     public void setTranslationEnabled(boolean enabled) { prefs.edit().putBoolean("translation_enabled", enabled).apply(); }
 
-    public String getSourceLanguage() { return prefs.getString("source_lang", "auto"); }
+    public String getSourceLanguage() { return prefs.getString("source_lang", "en"); }
     public void setSourceLanguage(String lang) { prefs.edit().putString("source_lang", lang).apply(); }
 
-    public boolean isAutoDetectSource() { return prefs.getBoolean("auto_detect_source", true); }
+    public boolean isAutoDetectSource() { return prefs.getBoolean("auto_detect_source", false); }
     public void setAutoDetectSource(boolean auto) { prefs.edit().putBoolean("auto_detect_source", auto).apply(); }
 
     public String getDestinationLanguage() { return prefs.getString("dest_lang", "en"); }
@@ -88,6 +88,9 @@ public class KeyboardSettings {
 
     public boolean isAutoCorrectEnabled() { return prefs.getBoolean("auto_correct", false); }
     public void setAutoCorrectEnabled(boolean enabled) { prefs.edit().putBoolean("auto_correct", enabled).apply(); }
+
+    public boolean isSuggestionsEnabled() { return prefs.getBoolean("suggestions_enabled", false); }
+    public void setSuggestionsEnabled(boolean enabled) { prefs.edit().putBoolean("suggestions_enabled", enabled).apply(); }
 
     public boolean isEnterSendsMessage() { return prefs.getBoolean("enter_sends_message", true); }
     public void setEnterSendsMessage(boolean enabled) { prefs.edit().putBoolean("enter_sends_message", enabled).apply(); }

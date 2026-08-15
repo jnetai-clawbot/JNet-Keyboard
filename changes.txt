@@ -1,5 +1,13 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.1.1
+### Changes
+- Split into two separate toggles in General settings:
+  - "Word Suggestions (suggest only)" - shows suggestion bar, does NOT change your words
+  - "Auto-Correct (change to nearest word)" - replaces misspelled words
+- Unicode font now works together with Translate Mode (translated text also gets the selected font)
+- Auto-Detect source language is now OFF by default; source defaults to English (en)
+
 ## 2026-08-15 - v1.1.0
 ### Changes
 - Fixed Unicode font not applying when Auto-Correct or Translate Mode is enabled (transform now applied in all typing paths)
