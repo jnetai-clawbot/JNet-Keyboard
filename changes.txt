@@ -1,5 +1,11 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.7
+### Changes
+- "Translate To" language is now a dropdown list in Translation settings (100+ languages)
+  - Select the language to translate into (e.g. French, Spanish, German)
+  - Globe icon (🌐) translates the whole input into the selected language, replacing the old text
+
 ## 2026-08-15 - v1.0.6
 ### Changes
 - Auto-correct now actually works (off by default, toggle in General settings)

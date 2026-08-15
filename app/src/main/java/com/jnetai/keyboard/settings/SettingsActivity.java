@@ -22,6 +22,113 @@ import java.util.Comparator;
 import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
+    private static final String[][] LANGS = {
+            {"auto", "Auto Detect"},
+            {"en", "English"},
+            {"fr", "French"},
+            {"de", "German"},
+            {"es", "Spanish"},
+            {"it", "Italian"},
+            {"pt", "Portuguese"},
+            {"nl", "Dutch"},
+            {"ru", "Russian"},
+            {"uk", "Ukrainian"},
+            {"pl", "Polish"},
+            {"cs", "Czech"},
+            {"sk", "Slovak"},
+            {"ro", "Romanian"},
+            {"hu", "Hungarian"},
+            {"bg", "Bulgarian"},
+            {"sr", "Serbian"},
+            {"hr", "Croatian"},
+            {"sl", "Slovenian"},
+            {"el", "Greek"},
+            {"tr", "Turkish"},
+            {"ar", "Arabic"},
+            {"he", "Hebrew"},
+            {"fa", "Persian"},
+            {"hi", "Hindi"},
+            {"bn", "Bengali"},
+            {"ta", "Tamil"},
+            {"te", "Telugu"},
+            {"kn", "Kannada"},
+            {"ml", "Malayalam"},
+            {"ur", "Urdu"},
+            {"pa", "Punjabi"},
+            {"gu", "Gujarati"},
+            {"th", "Thai"},
+            {"vi", "Vietnamese"},
+            {"id", "Indonesian"},
+            {"ms", "Malay"},
+            {"tl", "Tagalog"},
+            {"ja", "Japanese"},
+            {"zh", "Chinese"},
+            {"ko", "Korean"},
+            {"af", "Afrikaans"},
+            {"sq", "Albanian"},
+            {"az", "Azerbaijani"},
+            {"be", "Belarusian"},
+            {"bs", "Bosnian"},
+            {"ca", "Catalan"},
+            {"ceb", "Cebuano"},
+            {"cy", "Welsh"},
+            {"da", "Danish"},
+            {"eo", "Esperanto"},
+            {"et", "Estonian"},
+            {"eu", "Basque"},
+            {"fi", "Finnish"},
+            {"fy", "Frisian"},
+            {"ga", "Irish"},
+            {"gd", "Scottish Gaelic"},
+            {"gl", "Galician"},
+            {"ha", "Hausa"},
+            {"haw", "Hawaiian"},
+            {"hmn", "Hmong"},
+            {"ht", "Haitian Creole"},
+            {"hy", "Armenian"},
+            {"ig", "Igbo"},
+            {"is", "Icelandic"},
+            {"jw", "Javanese"},
+            {"ka", "Georgian"},
+            {"kk", "Kazakh"},
+            {"km", "Khmer"},
+            {"ku", "Kurdish"},
+            {"ky", "Kyrgyz"},
+            {"la", "Latin"},
+            {"lb", "Luxembourgish"},
+            {"lo", "Lao"},
+            {"lt", "Lithuanian"},
+            {"lv", "Latvian"},
+            {"mg", "Malagasy"},
+            {"mi", "Maori"},
+            {"mk", "Macedonian"},
+            {"mn", "Mongolian"},
+            {"mr", "Marathi"},
+            {"mt", "Maltese"},
+            {"my", "Burmese"},
+            {"ne", "Nepali"},
+            {"no", "Norwegian"},
+            {"ny", "Chichewa"},
+            {"or", "Odia"},
+            {"ps", "Pashto"},
+            {"si", "Sinhala"},
+            {"sm", "Samoan"},
+            {"sn", "Shona"},
+            {"so", "Somali"},
+            {"st", "Sesotho"},
+            {"su", "Sundanese"},
+            {"sv", "Swedish"},
+            {"sw", "Swahili"},
+            {"tg", "Tajik"},
+            {"tk", "Turkmen"},
+            {"tt", "Tatar"},
+            {"ug", "Uyghur"},
+            {"uz", "Uzbek"},
+            {"xh", "Xhosa"},
+            {"yi", "Yiddish"},
+            {"yo", "Yoruba"},
+            {"zu", "Zulu"},
+    };
     private KeyboardSettings settings;
     private LinearLayout contentLayout;
     private String currentSection = "general";
@@ -286,11 +393,27 @@ public class SettingsActivity extends AppCompatActivity {
                     return false;
                 });
 
-        addEditText("Destination Language (e.g. en, fr, de)", settings.getDestinationLanguage(),
-                (v, actionId, event) -> {
-                    settings.setDestinationLanguage(((EditText) v).getText().toString());
-                    return false;
-                });
+        addLabel("Translate To (destination language)");
+        Spinner destSpinner = new Spinner(this);
+        final String[] destNames = new String[LANGS.length];
+        for (int i = 0; i < LANGS.length; i++) destNames[i] = LANGS[i][1] + " (" + LANGS[i][0] + ")";
+        ArrayAdapter<String> destAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, destNames);
+        destAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        destSpinner.setAdapter(destAdapter);
+        String currentDest = settings.getDestinationLanguage();
+        for (int i = 0; i < LANGS.length; i++) {
+            if (LANGS[i][0].equals(currentDest)) {
+                destSpinner.setSelection(i);
+                break;
+            }
+        }
+        destSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                settings.setDestinationLanguage(LANGS[pos][0]);
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {}
+        });
+        contentLayout.addView(destSpinner);
 
         addEditText("API URL (optional)", settings.getApiUrl(),
                 (v, actionId, event) -> {
@@ -496,7 +619,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.0.6");
+        addLabel("Version v1.0.7");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,
