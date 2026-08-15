@@ -1,5 +1,10 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-15 - v1.0.9
+### Changes
+- Fixed all dropdown/spinner boxes showing blank text: now dark background with white bold text
+- Added a "Selected: ..." label under every dropdown so the current choice is always clear
+
 ## 2026-08-15 - v1.0.8
 ### Changes
 - Google Translate is now the default translation provider and works for free (no API key needed)

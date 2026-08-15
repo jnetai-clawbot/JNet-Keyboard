@@ -232,9 +232,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void addSpinner(String label, String[] items, String selected, AdapterView.OnItemSelectedListener listener) {
         addLabel(label);
-        Spinner spinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        final Spinner spinner = new Spinner(this);
+        ArrayAdapter<String> adapter = createDarkAdapter(items);
         spinner.setAdapter(adapter);
         for (int i = 0; i < items.length; i++) {
             if (items[i].equals(selected)) {
@@ -242,8 +241,62 @@ public class SettingsActivity extends AppCompatActivity {
                 break;
             }
         }
-        spinner.setOnItemSelectedListener(listener);
+        final TextView selectionLabel = createSelectionLabel(selected);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                selectionLabel.setText("Selected: " + p.getItemAtPosition(pos));
+                if (listener != null) listener.onItemSelected(p, v, pos, id);
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {
+                if (listener != null) listener.onNothingSelected(p);
+            }
+        });
         contentLayout.addView(spinner);
+        contentLayout.addView(selectionLabel);
+    }
+
+    private ArrayAdapter<String> createDarkAdapter(String[] items) {
+        return new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
+            @Override
+            public View getView(int position, View convertView, android.view.ViewGroup parent) {
+                return styledSpinnerView(getItem(position));
+            }
+            @Override
+            public View getDropDownView(int position, View convertView, android.view.ViewGroup parent) {
+                return styledSpinnerDropDownView(getItem(position));
+            }
+        };
+    }
+
+    private TextView styledSpinnerView(String text) {
+        TextView tv = new TextView(SettingsActivity.this);
+        tv.setText(text);
+        tv.setTextSize(16);
+        tv.setTextColor(0xFFFFFFFF);
+        tv.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        tv.setPadding(16, 14, 16, 14);
+        tv.setBackgroundColor(0xFF3C3C3C);
+        return tv;
+    }
+
+    private TextView styledSpinnerDropDownView(String text) {
+        TextView tv = new TextView(SettingsActivity.this);
+        tv.setText(text);
+        tv.setTextSize(16);
+        tv.setTextColor(0xFFFFFFFF);
+        tv.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        tv.setPadding(24, 16, 24, 16);
+        tv.setBackgroundColor(0xFF2D2D2D);
+        return tv;
+    }
+
+    private TextView createSelectionLabel(String initial) {
+        TextView tv = new TextView(this);
+        tv.setText(initial != null ? "Selected: " + initial : "Selected: none");
+        tv.setTextSize(12);
+        tv.setTextColor(0xFF8AB4F8);
+        tv.setPadding(4, 2, 4, 10);
+        return tv;
     }
 
     private void addEditText(String label, String value, TextView.OnEditorActionListener listener) {
@@ -402,45 +455,51 @@ public class SettingsActivity extends AppCompatActivity {
         Spinner srcSpinner = new Spinner(this);
         final String[] srcNames = new String[LANGS.length];
         for (int i = 0; i < LANGS.length; i++) srcNames[i] = LANGS[i][1];
-        ArrayAdapter<String> srcAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, srcNames);
-        srcAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> srcAdapter = createDarkAdapter(srcNames);
         srcSpinner.setAdapter(srcAdapter);
+        final TextView srcSelectionLabel = createSelectionLabel(srcNames.length > 0 ? srcNames[0] : null);
         String currentSrc = settings.getSourceLanguage();
         for (int i = 0; i < LANGS.length; i++) {
             if (LANGS[i][0].equals(currentSrc)) {
                 srcSpinner.setSelection(i);
+                srcSelectionLabel.setText("Selected: " + srcNames[i]);
                 break;
             }
         }
         srcSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
                 settings.setSourceLanguage(LANGS[pos][0]);
+                srcSelectionLabel.setText("Selected: " + srcNames[pos]);
             }
             @Override public void onNothingSelected(AdapterView<?> p) {}
         });
         contentLayout.addView(srcSpinner);
+        contentLayout.addView(srcSelectionLabel);
 
         addLabel("Translate To (destination language)");
         Spinner destSpinner = new Spinner(this);
         final String[] destNames = new String[LANGS.length];
         for (int i = 0; i < LANGS.length; i++) destNames[i] = LANGS[i][1];
-        ArrayAdapter<String> destAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, destNames);
-        destAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> destAdapter = createDarkAdapter(destNames);
         destSpinner.setAdapter(destAdapter);
+        final TextView destSelectionLabel = createSelectionLabel(destNames.length > 0 ? destNames[0] : null);
         String currentDest = settings.getDestinationLanguage();
         for (int i = 0; i < LANGS.length; i++) {
             if (LANGS[i][0].equals(currentDest)) {
                 destSpinner.setSelection(i);
+                destSelectionLabel.setText("Selected: " + destNames[i]);
                 break;
             }
         }
         destSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
                 settings.setDestinationLanguage(LANGS[pos][0]);
+                destSelectionLabel.setText("Selected: " + destNames[pos]);
             }
             @Override public void onNothingSelected(AdapterView<?> p) {}
         });
         contentLayout.addView(destSpinner);
+        contentLayout.addView(destSelectionLabel);
 
         addEditText("API URL (optional)", settings.getApiUrl(),
                 (v, actionId, event) -> {
@@ -646,7 +705,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.0.8");
+        addLabel("Version v1.0.9");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,
