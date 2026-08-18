@@ -1,5 +1,12 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-18 - v1.1.4
+### Bug Fixes
+- Fixed word suggestions + "Add Word" only seeing the LAST letter typed instead of the whole word
+  - (Typing "tes" now correctly suggests "test"; typing "andy" now offers to add "andy", not just "y")
+  - Root cause: the IME relied on the app reporting the text-composing region, which many apps don't
+  - Now the keyboard tracks the cursor position itself, so suggestion/composing tracking works in every app
+
 ## 2026-08-18 - v1.1.3
 ### Changes
 - Suggestions now only finish or correct the word you are currently typing - tapping one replaces the whole word (no more unrelated "next word" suggestions)

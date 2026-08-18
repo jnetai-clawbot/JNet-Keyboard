@@ -47,6 +47,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private int emojiPage = -1;
     private StringBuilder composing = new StringBuilder();
     private StringBuilder currentWord = new StringBuilder();
+    private int wordStartOffset = -1;
+    private int wordDisplayLen = 0;
     private long lastShiftTime = 0;
     private long lastPressTime = 0;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -146,6 +148,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
         currentWord.setLength(0);
         composing.setLength(0);
+        wordStartOffset = -1;
+        wordDisplayLen = 0;
         hideSuggestions();
     }
 
@@ -266,6 +270,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
         currentWord.setLength(0);
+        wordStartOffset = -1;
+        wordDisplayLen = 0;
         hideSuggestions();
         String text = suggestion + " ";
         if (!isSecureField && settings.isUnicodeEnabled() && !"normal".equals(settings.getCurrentStyleId())) {
@@ -284,19 +290,24 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
     }
 
-    private boolean isComposingAligned(InputConnection ic) {
-        if (currentWord.length() == 0 && composing.length() == 0) return true;
+    private int getCursorAbs() {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return -1;
         try {
             android.view.inputmethod.ExtractedTextRequest req = new android.view.inputmethod.ExtractedTextRequest();
             android.view.inputmethod.ExtractedText et = ic.getExtractedText(req, 0);
-            if (et == null || et.text == null) return false;
-            if (et.partialStartOffset < 0 || et.partialEndOffset < 0) return false;
-            int cursor = et.startOffset + et.selectionStart;
-            int compEnd = et.startOffset + et.partialEndOffset;
-            return cursor == compEnd;
+            if (et == null || et.text == null) return -1;
+            return et.startOffset + et.selectionStart;
         } catch (Exception e) {
-            return true;
+            return -1;
         }
+    }
+
+    private boolean isComposingAligned(InputConnection ic) {
+        if (currentWord.length() == 0 && composing.length() == 0) return true;
+        int cursor = getCursorAbs();
+        if (cursor < 0 || wordStartOffset < 0) return true;
+        return cursor == wordStartOffset + wordDisplayLen;
     }
 
     private void resetComposing(InputConnection ic) {
@@ -305,6 +316,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
         composing.setLength(0);
         currentWord.setLength(0);
+        wordStartOffset = -1;
+        wordDisplayLen = 0;
         hideSuggestions();
     }
 
@@ -319,6 +332,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         String word = currentWord.toString();
         if (word.isEmpty()) return;
         currentWord.setLength(0);
+        wordStartOffset = -1;
+        wordDisplayLen = 0;
         hideSuggestions();
         String commit = word;
         if (settings.isAutoCorrectEnabled()) {
@@ -434,15 +449,21 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (currentWord.length() > 0) {
             currentWord.setLength(currentWord.length() - 1);
             if (currentWord.length() > 0) {
-                ic.setComposingText(applyUnicode(currentWord.toString()), 1);
+                String display = applyUnicode(currentWord.toString());
+                wordDisplayLen = display.length();
+                ic.setComposingText(display, 1);
                 if (settings.isSuggestionsEnabled()) updateSuggestions();
             } else {
                 hideSuggestions();
                 ic.finishComposingText();
+                wordStartOffset = -1;
+                wordDisplayLen = 0;
             }
         } else if (composing.length() > 0) {
             composing.setLength(composing.length() - 1);
-            ic.setComposingText(applyUnicode(composing.toString()), 1);
+            String display = applyUnicode(composing.toString());
+            wordDisplayLen = display.length();
+            ic.setComposingText(display, 1);
         } else {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
         }
@@ -473,6 +494,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             if (composing.length() > 0) {
                 ic.finishComposingText();
                 composing.setLength(0);
+                wordStartOffset = -1;
+                wordDisplayLen = 0;
             }
             translateWholeInputThenSend();
             return;
@@ -480,6 +503,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (composing.length() > 0) {
             ic.finishComposingText();
             composing.setLength(0);
+            wordStartOffset = -1;
+            wordDisplayLen = 0;
         }
         if (settings.isEnterSendsMessage()) {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
@@ -503,6 +528,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             String word = composing.toString();
             ic.setComposingText("", 1);
             composing.setLength(0);
+            wordStartOffset = -1;
+            wordDisplayLen = 0;
             translateWord(word, " ");
             return;
         }
@@ -539,10 +566,12 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         syncComposing(ic);
 
         if (!isSecureField && settings.isTranslationEnabled() && isLetter) {
+            if (composing.length() == 0) wordStartOffset = getCursorAbs();
             composing.append(text);
             String display = unicodeOn
                     ? UnicodeStyleDatabase.transform(composing.toString(), settings.getCurrentStyleId())
                     : composing.toString();
+            wordDisplayLen = display.length();
             ic.setComposingText(display, 1);
             if (isShifted && !isCapsLock) {
                 isShifted = false;
@@ -552,9 +581,11 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
 
         if (suggestOn && isLetter) {
+            if (currentWord.length() == 0) wordStartOffset = getCursorAbs();
             currentWord.append(text);
             String display = unicodeOn ? UnicodeStyleDatabase.transform(currentWord.toString(), settings.getCurrentStyleId())
                     : currentWord.toString();
+            wordDisplayLen = display.length();
             ic.setComposingText(display, 1);
             if (settings.isSuggestionsEnabled()) {
                 updateSuggestions();
@@ -649,6 +680,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (composing.length() > 0) {
             ic.finishComposingText();
             composing.setLength(0);
+            wordStartOffset = -1;
+            wordDisplayLen = 0;
         }
         android.view.inputmethod.ExtractedTextRequest req = new android.view.inputmethod.ExtractedTextRequest();
         req.flags = 0;
