@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:keyHeight="@dimen/key_height"
+    android:horizontalGap="1px"
+    android:verticalGap="1px">
+
+    <Row>
+        <Key android:codes="127970" android:keyLabel="🏢" android:keyEdgeFlags="left" />
+        <Key android:codes="127973" android:keyLabel="🏥" />
+        <Key android:codes="127979" android:keyLabel="🏫" />
+        <Key android:codes="9962" android:keyLabel="⛪" />
+        <Key android:codes="9774" android:keyLabel="☮️" />
+        <Key android:codes="9851" android:keyLabel="♻️" />
+        <Key android:codes="169" android:keyLabel="©️" />
+        <Key android:codes="174" android:keyLabel="®️" />
+        <Key android:codes="8482" android:keyLabel="™️" />
+        <Key android:codes="10133" android:keyLabel="➕" android:keyEdgeFlags="right" />
+    </Row>
+
+    <Row>
+        <Key android:codes="10134" android:keyLabel="➖" android:keyEdgeFlags="left" />
+        <Key android:codes="10006" android:keyLabel="✖️" />
+        <Key android:codes="10135" android:keyLabel="➗" />
+        <Key android:codes="12336" android:keyLabel="〰️" />
+        <Key android:codes="128488" android:keyLabel="🗨️" />
+        <Key android:codes="128075" android:keyLabel="👋" />
+        <Key android:codes="129309" android:keyLabel="🤝" />
+        <Key android:codes="9996" android:keyLabel="✌️" />
+        <Key android:codes="129310" android:keyLabel="🤞" />
+        <Key android:codes="129304" android:keyLabel="🤘" android:keyEdgeFlags="right" />
+    </Row>
+
+    <Row>
+        <Key android:codes="128076" android:keyLabel="👌" android:keyEdgeFlags="left" />
+        <Key android:codes="129305" android:keyLabel="🤙" />
+        <Key android:codes="128406" android:keyLabel="🖖" />
+        <Key android:codes="128578" android:keyLabel="🙂" />
+        <Key android:codes="128579" android:keyLabel="🙃" />
+        <Key android:codes="128521" android:keyLabel="😉" />
+        <Key android:codes="128523" android:keyLabel="😋" />
+        <Key android:codes="128539" android:keyLabel="😛" />
+        <Key android:codes="129322" android:keyLabel="🤪" />
+        <Key android:codes="128524" android:keyLabel="😌" android:keyEdgeFlags="right" />
+    </Row>
+
+    <Row>
+        <Key android:codes="128527" android:keyLabel="😏" android:keyEdgeFlags="left" />
+        <Key android:codes="128530" android:keyLabel="😒" />
+        <Key android:codes="128532" android:keyLabel="😔" />
+        <Key android:codes="129316" android:keyLabel="🤤" />
+        <Key android:codes="129314" android:keyLabel="🤢" />
+        <Key android:codes="129326" android:keyLabel="🤮" />
+        <Key android:codes="129319" android:keyLabel="🤧" />
+        <Key android:codes="129397" android:keyLabel="🥵" />
+        <Key android:codes="129398" android:keyLabel="🥶" />
+        <Key android:codes="129395" android:keyLabel="🥳" android:keyEdgeFlags="right" />
+    </Row>
+
+    <Row>
+        <Key android:codes="-101" android:keyLabel="😊" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-109" android:keyLabel="3/6" android:keyWidth="8%p" />
+        <Key android:codes="-110" android:keyLabel="🔍" android:keyWidth="8%p" />
+        <Key android:codes="-102" android:keyLabel="&amp;123" android:keyWidth="8%p" />
+        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="28%p" />
+        <Key android:codes="-108" android:keyLabel="ABC" android:keyWidth="8%p" />
+        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="10%p" android:isRepeatable="true" />
+        <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="10%p" android:keyEdgeFlags="right" />
+    </Row>
+
+</Keyboard>

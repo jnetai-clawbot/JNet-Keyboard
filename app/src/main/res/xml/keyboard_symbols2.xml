@@ -63,7 +63,7 @@
         <Key android:codes="-110" android:keyLabel="🔍" android:keyWidth="8%p" />
         <Key android:codes="-107" android:keyLabel="space" android:keyWidth="28%p" />
         <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
-        <Key android:codes="-109" android:keyLabel="2/2" android:keyWidth="8%p" />
+        <Key android:codes="-109" android:keyLabel="2/3" android:keyWidth="8%p" />
         <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="10%p" android:isRepeatable="true" />
         <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="10%p" android:keyEdgeFlags="right" />
     </Row>

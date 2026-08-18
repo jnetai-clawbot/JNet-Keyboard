@@ -34,9 +34,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private Keyboard currentKeyboard;
     private Keyboard ukKeyboard;
     private Keyboard usKeyboard;
-    private Keyboard symbolsKeyboard;
-    private Keyboard symbolsKeyboard2;
-    private Keyboard emojiKeyboard;
+    private Keyboard[] symbolsKeyboards;
+    private Keyboard[] emojiKeyboards;
     private KeyboardSettings settings;
     private TranslationManager translationManager;
     private ClipboardManager clipboardManager;
@@ -44,9 +43,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private boolean isShifted = false;
     private boolean isCapsLock = false;
     private boolean isSecureField = false;
-    private boolean isSymbolsPage = false;
-    private boolean isSymbolsPage2 = false;
-    private boolean isEmojiPage = false;
+    private int symbolsPage = -1;
+    private int emojiPage = -1;
     private StringBuilder composing = new StringBuilder();
     private StringBuilder currentWord = new StringBuilder();
     private long lastShiftTime = 0;
@@ -98,15 +96,27 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         String layout = settings.getKeyboardLayout();
         int ukId = getResources().getIdentifier("keyboard_uk", "xml", getPackageName());
         int usId = getResources().getIdentifier("keyboard_us", "xml", getPackageName());
-        int symId = getResources().getIdentifier("keyboard_symbols", "xml", getPackageName());
-        int sym2Id = getResources().getIdentifier("keyboard_symbols2", "xml", getPackageName());
-        int emojiId = getResources().getIdentifier("keyboard_emoji", "xml", getPackageName());
 
         if (ukId != 0) ukKeyboard = new Keyboard(this, ukId);
         if (usId != 0) usKeyboard = new Keyboard(this, usId);
-        if (symId != 0) symbolsKeyboard = new Keyboard(this, symId);
-        if (sym2Id != 0) symbolsKeyboard2 = new Keyboard(this, sym2Id);
-        if (emojiId != 0) emojiKeyboard = new Keyboard(this, emojiId);
+
+        java.util.List<Keyboard> symList = new java.util.ArrayList<>();
+        for (int i = 1; i <= 20; i++) {
+            String name = i == 1 ? "keyboard_symbols" : "keyboard_symbols" + i;
+            int id = getResources().getIdentifier(name, "xml", getPackageName());
+            if (id == 0) break;
+            symList.add(new Keyboard(this, id));
+        }
+        symbolsKeyboards = symList.toArray(new Keyboard[0]);
+
+        java.util.List<Keyboard> emList = new java.util.ArrayList<>();
+        for (int i = 1; i <= 20; i++) {
+            String name = i == 1 ? "keyboard_emoji" : "keyboard_emoji" + i;
+            int id = getResources().getIdentifier(name, "xml", getPackageName());
+            if (id == 0) break;
+            emList.add(new Keyboard(this, id));
+        }
+        emojiKeyboards = emList.toArray(new Keyboard[0]);
 
         if ("us".equals(layout) && usKeyboard != null) {
             currentKeyboard = usKeyboard;
@@ -198,6 +208,37 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
     }
 
+    private boolean isComposingAligned(InputConnection ic) {
+        if (currentWord.length() == 0 && composing.length() == 0) return true;
+        try {
+            android.view.inputmethod.ExtractedTextRequest req = new android.view.inputmethod.ExtractedTextRequest();
+            android.view.inputmethod.ExtractedText et = ic.getExtractedText(req, 0);
+            if (et == null || et.text == null) return false;
+            if (et.partialStartOffset < 0 || et.partialEndOffset < 0) return false;
+            int cursor = et.startOffset + et.selectionStart;
+            int compEnd = et.startOffset + et.partialEndOffset;
+            return cursor == compEnd;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private void resetComposing(InputConnection ic) {
+        if (ic != null && (composing.length() > 0 || currentWord.length() > 0)) {
+            ic.finishComposingText();
+        }
+        composing.setLength(0);
+        currentWord.setLength(0);
+        hideSuggestions();
+    }
+
+    private void syncComposing(InputConnection ic) {
+        if (currentWord.length() == 0 && composing.length() == 0) return;
+        if (!isComposingAligned(ic)) {
+            resetComposing(ic);
+        }
+    }
+
     private void commitCurrentWord(InputConnection ic) {
         String word = currentWord.toString();
         if (word.isEmpty()) return;
@@ -285,10 +326,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 handleSpace(ic);
                 break;
             case -108:
-                switchToLetters();
+                if (symbolsPage >= 0) {
+                    nextPage();
+                } else {
+                    switchToLetters();
+                }
                 break;
             case -109:
-                switchToSymbols2();
+                nextPage();
                 break;
             case -110:
                 openEmojiSearch();
@@ -303,7 +348,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         CharSequence selected = ic.getSelectedText(0);
         if (selected != null && selected.length() > 0) {
             ic.commitText("", 1);
-        } else if (currentWord.length() > 0) {
+            return;
+        }
+        if ((currentWord.length() > 0 || composing.length() > 0) && !isComposingAligned(ic)) {
+            resetComposing(ic);
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
+            return;
+        }
+        if (currentWord.length() > 0) {
             currentWord.setLength(currentWord.length() - 1);
             if (currentWord.length() > 0) {
                 ic.setComposingText(applyUnicode(currentWord.toString()), 1);
@@ -336,6 +388,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleEnter(InputConnection ic) {
+        syncComposing(ic);
         if (!isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled())
                 && currentWord.length() > 0) {
             commitCurrentWord(ic);
@@ -360,6 +413,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void handleSpace(InputConnection ic) {
+        syncComposing(ic);
         if (!isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled())
                 && currentWord.length() > 0) {
             commitCurrentWord(ic);
@@ -381,7 +435,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
         if (isEmoji) {
             String text = new String(Character.toChars(primaryCode));
-            if (isEmojiPage && System.currentTimeMillis() - lastPressTime > 600) {
+            if (emojiPage >= 0 && System.currentTimeMillis() - lastPressTime > 600) {
                 ic.commitText(text + text + text, 1);
             } else {
                 ic.commitText(text, 1);
@@ -399,6 +453,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 && !"normal".equals(settings.getCurrentStyleId());
 
         boolean suggestOn = !isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled());
+
+        syncComposing(ic);
 
         if (!isSecureField && settings.isTranslationEnabled() && isLetter) {
             composing.append(text);
@@ -572,44 +628,68 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void toggleEmoji() {
-        if (isEmojiPage) {
-            switchToLetters();
-        } else {
-            isEmojiPage = true;
-            isSymbolsPage = false;
-            isSymbolsPage2 = false;
-            if (emojiKeyboard != null && keyboardView != null) {
-                keyboardView.setKeyboard(emojiKeyboard);
-            }
+        if (emojiPage >= 0) {
+            nextPage();
+            return;
+        }
+        emojiPage = 0;
+        symbolsPage = -1;
+        if (emojiKeyboards != null && emojiKeyboards.length > 0 && keyboardView != null) {
+            keyboardView.setKeyboard(emojiKeyboards[0]);
         }
     }
 
     private void toggleSymbols() {
-        if (isSymbolsPage) {
-            switchToLetters();
-        } else {
-            isSymbolsPage = true;
-            isSymbolsPage2 = false;
-            isEmojiPage = false;
-            if (symbolsKeyboard != null && keyboardView != null) {
-                keyboardView.setKeyboard(symbolsKeyboard);
+        if (symbolsPage >= 0) {
+            nextPage();
+            return;
+        }
+        symbolsPage = 0;
+        emojiPage = -1;
+        if (symbolsKeyboards != null && symbolsKeyboards.length > 0 && keyboardView != null) {
+            keyboardView.setKeyboard(symbolsKeyboards[0]);
+        }
+    }
+
+    private void nextPage() {
+        if (symbolsPage >= 0) {
+            if (symbolsPage >= symbolsKeyboards.length - 1) {
+                switchToLetters();
+            } else {
+                symbolsPage++;
+                if (keyboardView != null) keyboardView.setKeyboard(symbolsKeyboards[symbolsPage]);
+            }
+        } else if (emojiPage >= 0) {
+            if (emojiPage >= emojiKeyboards.length - 1) {
+                switchToLetters();
+            } else {
+                emojiPage++;
+                if (keyboardView != null) keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
             }
         }
     }
 
-    private void switchToSymbols2() {
-        isSymbolsPage2 = true;
-        isSymbolsPage = false;
-        isEmojiPage = false;
-        if (symbolsKeyboard2 != null && keyboardView != null) {
-            keyboardView.setKeyboard(symbolsKeyboard2);
+    private void prevPage() {
+        if (symbolsPage >= 0) {
+            if (symbolsPage <= 0) {
+                switchToLetters();
+            } else {
+                symbolsPage--;
+                if (keyboardView != null) keyboardView.setKeyboard(symbolsKeyboards[symbolsPage]);
+            }
+        } else if (emojiPage >= 0) {
+            if (emojiPage <= 0) {
+                switchToLetters();
+            } else {
+                emojiPage--;
+                if (keyboardView != null) keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+            }
         }
     }
 
     private void switchToLetters() {
-        isSymbolsPage = false;
-        isSymbolsPage2 = false;
-        isEmojiPage = false;
+        symbolsPage = -1;
+        emojiPage = -1;
         if (currentKeyboard != null && keyboardView != null) {
             keyboardView.setKeyboard(currentKeyboard);
         }
@@ -689,9 +769,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     @Override
-    public void swipeLeft() {}
+    public void swipeLeft() {
+        if (symbolsPage >= 0 || emojiPage >= 0) prevPage();
+    }
+
     @Override
-    public void swipeRight() {}
+    public void swipeRight() {
+        if (symbolsPage >= 0 || emojiPage >= 0) nextPage();
+    }
     @Override
     public void swipeDown() {}
     @Override
