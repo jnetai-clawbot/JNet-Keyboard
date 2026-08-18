@@ -92,6 +92,12 @@ public class KeyboardSettings {
     public boolean isSuggestionsEnabled() { return prefs.getBoolean("suggestions_enabled", false); }
     public void setSuggestionsEnabled(boolean enabled) { prefs.edit().putBoolean("suggestions_enabled", enabled).apply(); }
 
+    public boolean isNextWordPrediction() { return prefs.getBoolean("next_word_prediction", false); }
+    public void setNextWordPrediction(boolean enabled) { prefs.edit().putBoolean("next_word_prediction", enabled).apply(); }
+
+    public boolean isAddWordEnabled() { return prefs.getBoolean("add_word_enabled", true); }
+    public void setAddWordEnabled(boolean enabled) { prefs.edit().putBoolean("add_word_enabled", enabled).apply(); }
+
     public boolean isEnterSendsMessage() { return prefs.getBoolean("enter_sends_message", true); }
     public void setEnterSendsMessage(boolean enabled) { prefs.edit().putBoolean("enter_sends_message", enabled).apply(); }
 

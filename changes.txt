@@ -1,5 +1,13 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-08-18 - v1.1.3
+### Changes
+- Suggestions now only finish or correct the word you are currently typing - tapping one replaces the whole word (no more unrelated "next word" suggestions)
+- Next Word Prediction is a separate option in Settings > General, OFF by default (when on, after a space it shows likely next words to tap)
+- Add Words to Dictionary: an "+ Add "word"" button appears above the keyboard for words not in the dictionary - tap it to save your own custom word (stored permanently on the phone)
+- Long-press any word you added to remove it from your dictionary (with confirmation)
+- Custom words are also used by auto-correct and appear in future suggestions
+
 ## 2026-08-18 - v1.1.2
 ### Changes
 - Symbols page 1 now shows $, £ and € together (plus everything it had before)

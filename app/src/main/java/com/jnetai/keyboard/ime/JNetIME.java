@@ -62,6 +62,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         translationManager = new TranslationManager();
         clipboardManager = new ClipboardManager(this);
         keyRemapping = new KeyRemapping(this);
+        WordDictionary.init(new java.io.File(getFilesDir(), "custom_words.txt"));
         Diagnostics.info("JNetIME", "onCreate", "IME service created");
     }
 
@@ -170,23 +171,95 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             return;
         }
         String typed = currentWord.toString();
+        if (typed.isEmpty()) {
+            if (settings.isNextWordPrediction() && !settings.isTranslationEnabled()) {
+                showNextWordPredictions();
+            } else {
+                hideSuggestions();
+            }
+            return;
+        }
         java.util.List<String> suggestions = WordDictionary.getSuggestions(typed);
-        if (suggestions.isEmpty() || typed.length() < 1) {
+        if (suggestions.isEmpty()) {
             hideSuggestions();
             return;
         }
+        boolean customDict = settings.isAddWordEnabled();
         suggestionBar.removeAllViews();
         for (String s : suggestions) {
+            TextView tv = makeSuggestionChip(s, customDict);
+            suggestionBar.addView(tv);
+        }
+        String norm = typed.trim().toLowerCase();
+        if (customDict && !norm.isEmpty() && !WordDictionary.isWord(norm)) {
+            TextView add = new TextView(this);
+            add.setText("+ Add \"" + norm + "\"");
+            add.setTextSize(14);
+            add.setTextColor(0xFF8AB4F8);
+            add.setPadding(16, 12, 16, 12);
+            add.setBackgroundColor(0xFF1A73E8);
+            add.setOnClickListener(v -> {
+                WordDictionary.addWord(norm);
+                hideSuggestions();
+                updateSuggestions();
+            });
+            suggestionBar.addView(add);
+        }
+        suggestionBar.setVisibility(View.VISIBLE);
+    }
+
+    private TextView makeSuggestionChip(final String word, boolean customDict) {
+        TextView tv = new TextView(this);
+        tv.setText(word);
+        tv.setTextSize(16);
+        tv.setTextColor(0xFFFFFFFF);
+        tv.setPadding(16, 12, 16, 12);
+        tv.setBackgroundColor(0xFF3C3C3C);
+        tv.setClickable(true);
+        tv.setOnClickListener(v -> acceptSuggestion(word));
+        if (customDict) {
+            tv.setLongClickable(true);
+            tv.setOnLongClickListener(v -> {
+                if (WordDictionary.isCustomWord(word)) {
+                    confirmRemoveWord(word);
+                    return true;
+                }
+                return false;
+            });
+        }
+        return tv;
+    }
+
+    private void showNextWordPredictions() {
+        if (suggestionBar == null) return;
+        suggestionBar.removeAllViews();
+        for (String s : WordDictionary.getNextWordSuggestions()) {
             TextView tv = new TextView(this);
             tv.setText(s);
             tv.setTextSize(16);
             tv.setTextColor(0xFFFFFFFF);
             tv.setPadding(16, 12, 16, 12);
             tv.setBackgroundColor(0xFF3C3C3C);
-            tv.setOnClickListener(v -> acceptSuggestion(s));
+            tv.setOnClickListener(v -> {
+                InputConnection ic = getCurrentInputConnection();
+                if (ic != null) ic.commitText(s + " ", 1);
+                updateSuggestions();
+            });
             suggestionBar.addView(tv);
         }
         suggestionBar.setVisibility(View.VISIBLE);
+    }
+
+    private void confirmRemoveWord(final String word) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Remove word")
+                .setMessage("Remove \"" + word + "\" from your dictionary?")
+                .setPositiveButton("Remove", (d, w) -> {
+                    WordDictionary.removeWord(word);
+                    updateSuggestions();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void acceptSuggestion(String suggestion) {
@@ -199,6 +272,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             text = UnicodeStyleDatabase.transform(suggestion, settings.getCurrentStyleId()) + " ";
         }
         ic.commitText(text, 1);
+        if (settings.isSuggestionsEnabled()) {
+            updateSuggestions();
+        }
     }
 
     private void hideSuggestions() {
@@ -418,6 +494,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 && currentWord.length() > 0) {
             commitCurrentWord(ic);
             ic.commitText(" ", 1);
+            if (settings.isSuggestionsEnabled() && !settings.isTranslationEnabled()) {
+                updateSuggestions();
+            }
             return;
         }
         if (!isSecureField && settings.isTranslationEnabled() && composing.length() > 0) {
@@ -428,6 +507,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             return;
         }
         ic.commitText(" ", 1);
+        if (settings.isSuggestionsEnabled() && !settings.isTranslationEnabled()) {
+            updateSuggestions();
+        }
     }
 
     private void handleCharacter(int primaryCode, InputConnection ic) {

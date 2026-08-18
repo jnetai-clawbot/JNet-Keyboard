@@ -1,5 +1,12 @@
 package com.jnetai.keyboard.dictionary;
 
+import com.jnetai.keyboard.diagnostics.Diagnostics;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,6 +15,8 @@ import java.util.Set;
 
 public class WordDictionary {
     private static final Set<String> WORDS = new HashSet<>();
+    private static final Set<String> CUSTOM = new HashSet<>();
+    private static File customFile;
 
     static {
         String[] words = {
@@ -103,9 +112,82 @@ public class WordDictionary {
         Collections.addAll(WORDS, words);
     }
 
+    private static final String[] NEXT_WORDS = {
+            "the", "and", "to", "of", "a", "in", "i", "it", "that", "you",
+            "for", "on", "with", "is", "was", "at", "be", "this", "have", "are"
+    };
+
+    public static void init(File file) {
+        customFile = file;
+        CUSTOM.clear();
+        if (file == null || !file.exists()) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String w = line.trim().toLowerCase();
+                if (!w.isEmpty()) {
+                    CUSTOM.add(w);
+                    WORDS.add(w);
+                }
+            }
+        } catch (IOException e) {
+            Diagnostics.log("JNK-DICT-001", "WordDictionary", "init", e, null);
+        }
+    }
+
+    public static boolean addWord(String word) {
+        if (word == null) return false;
+        String w = word.trim().toLowerCase();
+        if (w.isEmpty()) return false;
+        CUSTOM.add(w);
+        WORDS.add(w);
+        persistCustom();
+        return true;
+    }
+
+    public static boolean removeWord(String word) {
+        if (word == null) return false;
+        String w = word.trim().toLowerCase();
+        if (w.isEmpty() || !CUSTOM.contains(w)) return false;
+        CUSTOM.remove(w);
+        WORDS.remove(w);
+        persistCustom();
+        return true;
+    }
+
+    public static boolean isCustomWord(String word) {
+        if (word == null) return false;
+        return CUSTOM.contains(word.toLowerCase());
+    }
+
+    private static void persistCustom() {
+        if (customFile == null) return;
+        try {
+            File parent = customFile.getParentFile();
+            if (parent != null) parent.mkdirs();
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(customFile))) {
+                for (String w : CUSTOM) {
+                    bw.write(w);
+                    bw.newLine();
+                }
+            }
+        } catch (IOException e) {
+            Diagnostics.log("JNK-DICT-002", "WordDictionary", "persistCustom", e, null);
+        }
+    }
+
     public static boolean isWord(String word) {
         if (word == null || word.isEmpty()) return false;
         return WORDS.contains(word.toLowerCase());
+    }
+
+    public static List<String> getNextWordSuggestions() {
+        List<String> result = new ArrayList<>();
+        for (String w : NEXT_WORDS) {
+            if (!result.contains(w)) result.add(w);
+            if (result.size() >= 3) break;
+        }
+        return result;
     }
 
     public static List<String> getSuggestions(String typed) {
@@ -113,18 +195,22 @@ public class WordDictionary {
         if (typed == null || typed.isEmpty()) return result;
         String t = typed.toLowerCase();
 
+        if (isWord(t)) result.add(t);
+
         for (String w : WORDS) {
-            if (w.startsWith(t)) {
+            if (w.startsWith(t) && !result.contains(w)) {
                 result.add(w);
-                if (result.size() >= 3) break;
+                if (result.size() >= 3) return result;
             }
         }
 
-        if (result.size() < 3) {
-            List<String> near = closestByDistance(t, 3 - result.size());
-            for (String w : near) {
-                if (!result.contains(w)) result.add(w);
-            }
+        int maxDist = Math.max(1, t.length() / 3);
+        char first = t.charAt(0);
+        for (String w : WORDS) {
+            if (result.size() >= 3) break;
+            if (result.contains(w) || w.isEmpty() || w.charAt(0) != first) continue;
+            int d = editDistance(t, w);
+            if (d <= maxDist) result.add(w);
         }
         return result;
     }
@@ -147,18 +233,6 @@ public class WordDictionary {
             return best;
         }
         return null;
-    }
-
-    private static List<String> closestByDistance(String typed, int count) {
-        List<String> matches = new ArrayList<>();
-        for (String w : WORDS) {
-            int d = editDistance(typed, w);
-            if (d <= 2) {
-                matches.add(w);
-                if (matches.size() >= count) break;
-            }
-        }
-        return matches;
     }
 
     private static int editDistance(String a, String b) {

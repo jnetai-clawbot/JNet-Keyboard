@@ -351,6 +351,9 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Enter Key Sends Message", settings.isEnterSendsMessage(), (btn, checked) -> settings.setEnterSendsMessage(checked));
         addSwitch("Word Suggestions (suggest only)", settings.isSuggestionsEnabled(), (btn, checked) -> settings.setSuggestionsEnabled(checked));
         addSwitch("Auto-Correct (change to nearest word)", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
+        addSwitch("Next Word Prediction", settings.isNextWordPrediction(), (btn, checked) -> settings.setNextWordPrediction(checked));
+        addSwitch("Add Words to Dictionary", settings.isAddWordEnabled(), (btn, checked) -> settings.setAddWordEnabled(checked));
+        addLabel("Tip: suggestions only finish or correct the word you are typing. Long-press a suggestion you added to remove it.");
     }
 
     private void buildUnicode() {
@@ -706,7 +709,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.2");
+        addLabel("Version v1.1.3");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,
