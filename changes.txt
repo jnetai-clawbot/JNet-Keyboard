@@ -1,5 +1,9 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-09-30 - v1.1.8
+### Changes
+- Settings screens now always have generous bottom padding so the last item (e.g. the last Common Phrase) can always be scrolled fully into view above the system navigation bar - nothing gets cut off even with very long phrases
+
 ## 2026-09-30 - v1.1.7
 ### Changes
 - Fixed crash/ANR when pressing "+ Add Phrase" - the dialog now opens safely off the key-press event

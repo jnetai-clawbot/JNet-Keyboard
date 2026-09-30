@@ -141,7 +141,9 @@ public class SettingsActivity extends AppCompatActivity {
         ScrollView scrollView = new ScrollView(this);
         contentLayout = new LinearLayout(this);
         contentLayout.setOrientation(LinearLayout.VERTICAL);
-        contentLayout.setPadding(32, 16, 32, 16);
+        float density = getResources().getDisplayMetrics().density;
+        contentLayout.setPadding((int) (16 * density), (int) (16 * density),
+                (int) (16 * density), (int) (160 * density));
         scrollView.addView(contentLayout);
         setContentView(scrollView);
 
@@ -787,7 +789,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.7");
+        addLabel("Version v1.1.8");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,
