@@ -30,7 +30,7 @@ import com.jnetai.keyboard.unicode.UnicodeStyleDatabase;
 
 public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
     private static JNetIME instance;
-    private KeyboardView keyboardView;
+    private JNetKeyboardView keyboardView;
     private LinearLayout suggestionBar;
     private Keyboard currentKeyboard;
     private Keyboard ukKeyboard;
