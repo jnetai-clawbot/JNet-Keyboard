@@ -1,5 +1,12 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-09-30 - v1.1.7
+### Changes
+- Fixed crash/ANR when pressing "+ Add Phrase" - the dialog now opens safely off the key-press event
+- "+ Add Phrase" now pre-fills with the text you just typed in the field (or selected text) - press Save to save it as a phrase
+- Phrase button labels now word-wrap, auto-shrink to fit, and end with "…" for long text - no more spilling out of the button
+- Phrase buttons are wider and slightly shorter so text fits better
+
 ## 2026-09-30 - v1.1.6
 ### Changes
 - Common Phrases is now its own dedicated keyboard page (5/5) - cycle to it with the bottom-left button

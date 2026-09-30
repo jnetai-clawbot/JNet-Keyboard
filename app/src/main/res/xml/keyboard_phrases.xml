@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p"
-    android:keyHeight="@dimen/key_height"
+    android:keyHeight="@dimen/phrase_key_height"
     android:horizontalGap="1px"
     android:verticalGap="1px">
 
     <Row>
-        <Key android:codes="-201" android:keyLabel="Phrase 1" android:keyWidth="25%p" android:keyEdgeFlags="left" />
-        <Key android:codes="-202" android:keyLabel="Phrase 2" android:keyWidth="25%p" />
-        <Key android:codes="-203" android:keyLabel="Phrase 3" android:keyWidth="25%p" />
-        <Key android:codes="-204" android:keyLabel="Phrase 4" android:keyWidth="25%p" android:keyEdgeFlags="right" />
+        <Key android:codes="-201" android:keyLabel="Phrase 1" android:keyWidth="33%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-202" android:keyLabel="Phrase 2" android:keyWidth="33%p" />
+        <Key android:codes="-203" android:keyLabel="Phrase 3" android:keyWidth="33%p" android:keyEdgeFlags="right" />
     </Row>
 
     <Row>
-        <Key android:codes="-205" android:keyLabel="Phrase 5" android:keyWidth="25%p" android:keyEdgeFlags="left" />
-        <Key android:codes="-206" android:keyLabel="Phrase 6" android:keyWidth="25%p" />
-        <Key android:codes="-207" android:keyLabel="Phrase 7" android:keyWidth="25%p" />
-        <Key android:codes="-208" android:keyLabel="Phrase 8" android:keyWidth="25%p" android:keyEdgeFlags="right" />
+        <Key android:codes="-204" android:keyLabel="Phrase 4" android:keyWidth="33%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-205" android:keyLabel="Phrase 5" android:keyWidth="33%p" />
+        <Key android:codes="-206" android:keyLabel="Phrase 6" android:keyWidth="33%p" android:keyEdgeFlags="right" />
     </Row>
 
     <Row>
-        <Key android:codes="-209" android:keyLabel="Phrase 9" android:keyWidth="25%p" android:keyEdgeFlags="left" />
-        <Key android:codes="-210" android:keyLabel="Phrase 10" android:keyWidth="25%p" />
-        <Key android:codes="-211" android:keyLabel="Phrase 11" android:keyWidth="25%p" />
-        <Key android:codes="-212" android:keyLabel="Phrase 12" android:keyWidth="25%p" android:keyEdgeFlags="right" />
+        <Key android:codes="-207" android:keyLabel="Phrase 7" android:keyWidth="33%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-208" android:keyLabel="Phrase 8" android:keyWidth="33%p" />
+        <Key android:codes="-209" android:keyLabel="Phrase 9" android:keyWidth="33%p" android:keyEdgeFlags="right" />
+    </Row>
+
+    <Row>
+        <Key android:codes="-210" android:keyLabel="Phrase 10" android:keyWidth="33%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-211" android:keyLabel="Phrase 11" android:keyWidth="33%p" />
+        <Key android:codes="-212" android:keyLabel="Phrase 12" android:keyWidth="33%p" android:keyEdgeFlags="right" />
     </Row>
 
     <Row>

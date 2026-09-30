@@ -894,18 +894,23 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void applyPhraseLabels(Keyboard keyboard) {
         if (keyboard == null) return;
         java.util.List<String> phrases = settings.getCommonPhrases();
+        java.util.Map<Integer, String> labels = new java.util.HashMap<>();
         for (Keyboard.Key key : keyboard.getKeys()) {
             if (key.codes != null && key.codes.length > 0) {
                 int code = key.codes[0];
                 if (code >= -212 && code <= -201) {
                     int index = code + 201;
+                    key.label = "";
                     if (index >= 0 && index < phrases.size()) {
-                        key.label = phrases.get(index);
+                        labels.put(code, phrases.get(index));
                     } else {
-                        key.label = "+ Add";
+                        labels.put(code, "");
                     }
                 }
             }
+        }
+        if (keyboardView != null) {
+            keyboardView.setPhraseLabels(labels);
         }
     }
 
@@ -945,8 +950,15 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void showPhraseEditDialog(final int index) {
+        handler.post(() -> showPhraseEditDialogInner(index));
+    }
+
+    private void showPhraseEditDialogInner(int index) {
         java.util.List<String> phrases = settings.getCommonPhrases();
-        final String phrase = (index >= 0 && index < phrases.size()) ? phrases.get(index) : "";
+        String phrase = (index >= 0 && index < phrases.size()) ? phrases.get(index) : "";
+        if (index < 0 && phrase.isEmpty()) {
+            phrase = getCurrentFieldText();
+        }
         final EditText input = new EditText(this);
         input.setText(phrase);
         input.setTextColor(0xFFFFFFFF);
@@ -974,7 +986,24 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 refreshPhrasesPage();
             });
         }
-        builder.show();
+        try {
+            builder.show();
+        } catch (Exception e) {
+            Diagnostics.log(ErrorCodes.GE_001, "JNetIME", "showPhraseEditDialog", e, null);
+        }
+    }
+
+    private String getCurrentFieldText() {
+        try {
+            InputConnection ic = getCurrentInputConnection();
+            if (ic == null) return "";
+            CharSequence sel = ic.getSelectedText(0);
+            if (sel != null && sel.length() > 0) return sel.toString().trim();
+            CharSequence before = ic.getTextBeforeCursor(300, 0);
+            if (before != null && before.length() > 0) return before.toString().trim();
+        } catch (Exception e) {
+        }
+        return "";
     }
 
     private void refreshPhrasesPage() {

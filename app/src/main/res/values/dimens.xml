@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="key_height">48dp</dimen>
+    <dimen name="phrase_key_height">44dp</dimen>
     <dimen name="enter_key_icon_size">26sp</dimen>
     <dimen name="suggestion_bar_height">48dp</dimen>
 </resources>
