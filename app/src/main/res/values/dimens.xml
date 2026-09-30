@@ -2,4 +2,5 @@
 <resources>
     <dimen name="key_height">48dp</dimen>
     <dimen name="enter_key_icon_size">26sp</dimen>
+    <dimen name="suggestion_bar_height">48dp</dimen>
 </resources>

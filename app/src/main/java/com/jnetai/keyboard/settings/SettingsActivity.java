@@ -161,6 +161,7 @@ public class SettingsActivity extends AppCompatActivity {
         addNavButton("Translation", "translation");
         addNavButton("Appearance", "appearance");
         addNavButton("Key Remapping", "remapping");
+        addNavButton("Common Phrases", "phrases");
         addNavButton("Clipboard Manager", "clipboard");
         addNavButton("Emoji Search", "emoji");
         addNavButton("Diagnostics", "diagnostics");
@@ -172,6 +173,7 @@ public class SettingsActivity extends AppCompatActivity {
             case "translation": buildTranslation(); break;
             case "appearance": buildAppearance(); break;
             case "remapping": buildRemapping(); break;
+            case "phrases": buildPhrases(); break;
             case "clipboard": buildClipboard(); break;
             case "emoji": buildEmojiSearch(); break;
             case "diagnostics": buildDiagnostics(); break;
@@ -585,6 +587,82 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    private void buildPhrases() {
+        addSectionHeader("Common Phrases");
+        addLabel("These appear as buttons on keyboard page 5. Tap a phrase to insert it. You can add emojis to phrases too.");
+
+        final EditText addInput = new EditText(this);
+        addInput.setHint("New phrase (e.g. Hey hows you?)");
+        addInput.setTextColor(0xFFFFFFFF);
+        addInput.setBackgroundColor(0xFF3C3C3C);
+        addInput.setPadding(16, 12, 16, 12);
+        contentLayout.addView(addInput);
+
+        addButton("Add Phrase", v -> {
+            String text = addInput.getText().toString().trim();
+            if (!text.isEmpty()) {
+                settings.addCommonPhrase(text);
+                buildUI();
+            }
+        });
+
+        java.util.List<String> phrases = settings.getCommonPhrases();
+        if (phrases.isEmpty()) {
+            addLabel("No phrases yet.");
+        } else {
+            for (int i = 0; i < phrases.size(); i++) {
+                final int index = i;
+                String text = phrases.get(i);
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setPadding(0, 4, 0, 4);
+
+                TextView tv = new TextView(this);
+                tv.setText(text);
+                tv.setTextSize(14);
+                tv.setTextColor(0xFFFFFFFF);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+                row.addView(tv);
+
+                Button editBtn = new Button(this);
+                editBtn.setText("Edit");
+                editBtn.setTextSize(12);
+                editBtn.setOnClickListener(v -> showEditPhraseDialog(index));
+                row.addView(editBtn);
+
+                Button delBtn = new Button(this);
+                delBtn.setText("X");
+                delBtn.setTextSize(12);
+                delBtn.setOnClickListener(v -> {
+                    settings.removeCommonPhrase(index);
+                    buildUI();
+                });
+                row.addView(delBtn);
+
+                contentLayout.addView(row);
+            }
+        }
+    }
+
+    private void showEditPhraseDialog(final int index) {
+        java.util.List<String> phrases = settings.getCommonPhrases();
+        if (index < 0 || index >= phrases.size()) return;
+        final EditText input = new EditText(this);
+        input.setText(phrases.get(index));
+        input.setTextColor(0xFFFFFFFF);
+        input.setBackgroundColor(0xFF3C3C3C);
+        input.setPadding(16, 12, 16, 12);
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Edit Phrase")
+                .setView(input)
+                .setPositiveButton("Save", (d, w) -> {
+                    settings.updateCommonPhrase(index, input.getText().toString().trim());
+                    buildUI();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void buildClipboard() {
         addSectionHeader("Clipboard Manager");
         ClipboardManager cm = new ClipboardManager(this);
@@ -709,7 +787,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.4");
+        addLabel("Version v1.1.5");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

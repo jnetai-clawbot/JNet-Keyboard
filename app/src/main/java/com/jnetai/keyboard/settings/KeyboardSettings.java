@@ -139,6 +139,43 @@ public class KeyboardSettings {
         return count;
     }
 
+    public java.util.List<String> getCommonPhrases() {
+        java.util.List<String> phrases = new java.util.ArrayList<>();
+        int count = prefs.getInt("phrase_count", 0);
+        for (int i = 0; i < count; i++) {
+            String p = prefs.getString("phrase_" + i, null);
+            if (p != null && !p.isEmpty()) phrases.add(p);
+        }
+        if (phrases.isEmpty()) {
+            phrases.add("Hey hows you?");
+            phrases.add("No worries");
+            phrases.add("Thanks a lot!");
+            phrases.add("See you later");
+        }
+        return phrases;
+    }
+
+    public void addCommonPhrase(String phrase) {
+        if (phrase == null || phrase.trim().isEmpty()) return;
+        int count = prefs.getInt("phrase_count", 0);
+        prefs.edit().putString("phrase_" + count, phrase.trim()).putInt("phrase_count", count + 1).apply();
+    }
+
+    public void updateCommonPhrase(int index, String phrase) {
+        int count = prefs.getInt("phrase_count", 0);
+        if (index < 0 || index >= count) return;
+        prefs.edit().putString("phrase_" + index, phrase.trim()).apply();
+    }
+
+    public void removeCommonPhrase(int index) {
+        int count = prefs.getInt("phrase_count", 0);
+        if (index < 0 || index >= count) return;
+        for (int i = index; i < count - 1; i++) {
+            prefs.edit().putString("phrase_" + i, prefs.getString("phrase_" + (i + 1), "")).apply();
+        }
+        prefs.edit().remove("phrase_" + (count - 1)).putInt("phrase_count", count - 1).apply();
+    }
+
     private Context context() {
         return appContext;
     }

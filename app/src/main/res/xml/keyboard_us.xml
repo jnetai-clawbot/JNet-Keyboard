@@ -58,12 +58,11 @@
     </Row>
 
     <Row>
-        <Key android:codes="-102" android:keyLabel="&amp;123" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-111" android:keyLabel="1/5" android:keyWidth="10%p" android:keyEdgeFlags="left" />
         <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
         <Key android:codes="-101" android:keyLabel="😊" android:keyWidth="8%p" />
-        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="32%p" />
+        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="40%p" />
         <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
-        <Key android:codes="-103" android:keyLabel="Aa" android:keyWidth="8%p" />
         <Key android:codes="-105" android:keyLabel="🌐" android:keyWidth="8%p" />
         <Key android:codes="-104" android:keyLabel="⚙" android:keyWidth="8%p" />
         <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="10%p" android:keyEdgeFlags="right" />

@@ -77,10 +77,13 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
         suggestionBar = new LinearLayout(this);
         suggestionBar.setOrientation(LinearLayout.HORIZONTAL);
+        suggestionBar.setGravity(android.view.Gravity.CENTER_VERTICAL);
         suggestionBar.setBackgroundColor(0xFF2D2D2D);
-        suggestionBar.setVisibility(View.GONE);
+        suggestionBar.setVisibility(View.VISIBLE);
         suggestionBar.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                (int) getResources().getDimension(getResources().getIdentifier(
+                        "suggestion_bar_height", "dimen", getPackageName()))));
         root.addView(suggestionBar);
 
         keyboardView = new JNetKeyboardView(this);
@@ -120,6 +123,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             emList.add(new Keyboard(this, id));
         }
         emojiKeyboards = emList.toArray(new Keyboard[0]);
+        if (emojiKeyboards.length > 0) applyPhraseLabels(emojiKeyboards[emojiKeyboards.length - 1]);
 
         if ("us".equals(layout) && usKeyboard != null) {
             currentKeyboard = usKeyboard;
@@ -286,7 +290,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void hideSuggestions() {
         if (suggestionBar != null) {
             suggestionBar.removeAllViews();
-            suggestionBar.setVisibility(View.GONE);
+            suggestionBar.setVisibility(View.VISIBLE);
         }
     }
 
@@ -415,6 +419,15 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 break;
             case -107:
                 handleSpace(ic);
+                break;
+            case -111:
+                nextPage();
+                break;
+            case -201:
+            case -202:
+            case -203:
+            case -204:
+                insertPhrase(primaryCode);
                 break;
             case -108:
                 if (symbolsPage >= 0) {
@@ -769,7 +782,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void nextPage() {
         if (symbolsPage >= 0) {
             if (symbolsPage >= symbolsKeyboards.length - 1) {
-                switchToLetters();
+                switchToEmoji();
             } else {
                 symbolsPage++;
                 if (keyboardView != null) keyboardView.setKeyboard(symbolsKeyboards[symbolsPage]);
@@ -779,26 +792,61 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 switchToLetters();
             } else {
                 emojiPage++;
-                if (keyboardView != null) keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+                if (keyboardView != null) {
+                    keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+                    applyPhraseLabels(emojiKeyboards[emojiPage]);
+                }
             }
+        } else {
+            switchToSymbols();
         }
     }
 
     private void prevPage() {
-        if (symbolsPage >= 0) {
+        if (emojiPage >= 0) {
+            if (emojiPage <= 0) {
+                symbolsPage = symbolsKeyboards.length - 1;
+                emojiPage = -1;
+                if (keyboardView != null && symbolsKeyboards.length > 0) {
+                    keyboardView.setKeyboard(symbolsKeyboards[symbolsPage]);
+                }
+            } else {
+                emojiPage--;
+                if (keyboardView != null) {
+                    keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+                    applyPhraseLabels(emojiKeyboards[emojiPage]);
+                }
+            }
+        } else if (symbolsPage >= 0) {
             if (symbolsPage <= 0) {
                 switchToLetters();
             } else {
                 symbolsPage--;
                 if (keyboardView != null) keyboardView.setKeyboard(symbolsKeyboards[symbolsPage]);
             }
-        } else if (emojiPage >= 0) {
-            if (emojiPage <= 0) {
-                switchToLetters();
-            } else {
-                emojiPage--;
-                if (keyboardView != null) keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+        } else {
+            emojiPage = emojiKeyboards.length - 1;
+            symbolsPage = -1;
+            if (keyboardView != null && emojiKeyboards.length > 0) {
+                keyboardView.setKeyboard(emojiKeyboards[emojiPage]);
+                applyPhraseLabels(emojiKeyboards[emojiPage]);
             }
+        }
+    }
+
+    private void switchToSymbols() {
+        symbolsPage = 0;
+        emojiPage = -1;
+        if (symbolsKeyboards != null && symbolsKeyboards.length > 0 && keyboardView != null) {
+            keyboardView.setKeyboard(symbolsKeyboards[0]);
+        }
+    }
+
+    private void switchToEmoji() {
+        emojiPage = 0;
+        symbolsPage = -1;
+        if (emojiKeyboards != null && emojiKeyboards.length > 0 && keyboardView != null) {
+            keyboardView.setKeyboard(emojiKeyboards[0]);
         }
     }
 
@@ -808,6 +856,38 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (currentKeyboard != null && keyboardView != null) {
             keyboardView.setKeyboard(currentKeyboard);
         }
+    }
+
+    private void applyPhraseLabels(Keyboard keyboard) {
+        if (keyboard == null) return;
+        java.util.List<String> phrases = settings.getCommonPhrases();
+        for (Keyboard.Key key : keyboard.getKeys()) {
+            if (key.codes != null && key.codes.length > 0) {
+                int code = key.codes[0];
+                if (code >= -204 && code <= -201) {
+                    int index = code + 201;
+                    if (index >= 0 && index < phrases.size()) {
+                        key.label = phrases.get(index);
+                    }
+                }
+            }
+        }
+    }
+
+    private void insertPhrase(int code) {
+        java.util.List<String> phrases = settings.getCommonPhrases();
+        int index = code + 201;
+        if (index < 0 || index >= phrases.size()) return;
+        String phrase = phrases.get(index);
+        if (phrase == null || phrase.isEmpty()) return;
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        if (!isSecureField && settings.isUnicodeEnabled()
+                && !"normal".equals(settings.getCurrentStyleId())) {
+            phrase = UnicodeStyleDatabase.transform(phrase, settings.getCurrentStyleId());
+        }
+        ic.commitText(phrase, 1);
+        if (settings.isSuggestionsEnabled()) updateSuggestions();
     }
 
     private void openFontSelector() {
