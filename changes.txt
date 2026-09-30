@@ -1,5 +1,11 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-09-30 - v1.1.6
+### Changes
+- Common Phrases is now its own dedicated keyboard page (5/5) - cycle to it with the bottom-left button
+- 12 phrase buttons on the page - tap to insert, long-press to edit or remove, and a "+ Add Phrase" button to add new ones (all from the keyboard, no need to open Settings)
+- All emojis consolidated onto page 4/5
+
 ## 2026-09-30 - v1.1.5
 ### Changes
 - 5 fixed pages, cycled by a bottom-left button now labelled 1/5, 2/5, 3/5, 4/5, 5/5 (was &123/1-3/1-6/ABC buttons) - one button cycles forwards on every page
