@@ -17,6 +17,7 @@ import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.jnetai.keyboard.clipboard.ClipboardManager;
@@ -90,7 +91,17 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 (int) getResources().getDimension(getResources().getIdentifier(
                         "suggestion_bar_height", "dimen", getPackageName()))));
-        root.addView(suggestionBar);
+        // A word can match many emojis, so let the bar scroll sideways to reach them all.
+        HorizontalScrollView suggestionScroller = new HorizontalScrollView(this);
+        suggestionScroller.setHorizontalScrollBarEnabled(false);
+        suggestionScroller.setFillViewport(true);
+        suggestionScroller.addView(suggestionBar, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        root.addView(suggestionScroller,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (int) getResources().getDimension(getResources().getIdentifier(
+                                "suggestion_bar_height", "dimen", getPackageName()))));
 
         keyboardView = new JNetKeyboardView(this);
         keyboardView.setLayoutParams(new LinearLayout.LayoutParams(
@@ -302,6 +313,10 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
     }
 
+    /**
+     * Adds every emoji that matches the completed word to the suggestion bar.
+     * Word chips are already there, so these append after them - the bar scrolls sideways.
+     */
     private void showEmojiSuggestions(String word, int wordStart, int displayLen) {
         if (suggestionBar == null) return;
         if (isSecureField) return;
@@ -318,9 +333,12 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             tv.setText(emoji);
             tv.setTextSize(16);
             tv.setTextColor(0xFFFFFFFF);
-            tv.setPadding(16, 12, 16, 12);
+            tv.setGravity(android.view.Gravity.CENTER);
+            tv.setPadding(14, 10, 14, 10);
             tv.setBackgroundColor(0xFF3C3C3C);
             tv.setClickable(true);
+            tv.setFocusable(true);
+            tv.setContentDescription(emoji);
             tv.setOnClickListener(v -> acceptEmojiSuggestion(emoji, ws, dl, replace));
             suggestionBar.addView(tv);
         }

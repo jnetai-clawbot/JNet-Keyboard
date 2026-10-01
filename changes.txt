@@ -1,5 +1,34 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-10-01 - v1.1.10
+### Changes
+- Emoji suggestions massively expanded - the emoji database went from 639 to 1500+ entries, and every
+  emoji now has a large set of everyday trigger words behind it (not just its official name)
+- ~315 completely missing emoji added, covering the everyday words that previously matched nothing:
+  paper/document, folder, briefcase, calculator, clipboard, scissors, ruler, brush
+  clothing (shirt, jeans, dress, shoes, boots, cap, crown, glasses, sunglasses, scarf, gloves)
+  furniture (bed, chair, couch, door, window, mirror)
+  health (pill, syringe, thermometer, bandage, stethoscope, wheelchair)
+  bathroom (shower, bath, soap, toothbrush, toilet, sponge)
+  tools (wrench, hammer, drill, axe, chainsaw, ladder, bricks, toolbox)
+  weather (cloud, partly cloudy, umbrella, drizzle, tornado, wind)
+  music (guitar, piano, drum, violin, saxophone, trumpet, banjo, score, headphones)
+  people (man, woman, boy, girl, baby, family, grandma, grandpa, doctor, nurse, teacher, farmer,
+  chef, firefighter, astronaut, scientist, mechanic, detective, superhero, vampire, zombie)
+  money/work (bar chart, rising chart, falling chart, abacus, bank, ATM)
+  nature (sprout, cactus, wheat, bouquet, dolphin, giraffe, zebra, kangaroo, sloth, hedgehog)
+  shapes/colour (red, orange, yellow, green, blue, purple, black, white, triangles, squares, diamonds)
+- Smarter matching engine, rebuilt as a lookup index instead of scanning every emoji:
+  - Multi-word keywords now work - "ice cream", "fast food", "half past" all match
+  - Plurals and word endings are handled: "papers" matches paper, "cooking" matches cook, "parking"
+    matches park
+  - Cap raised from 4 to 10 emoji per word, so "cloud" shows all ten cloud/weather emoji
+  - Best matches come first (an exact keyword beats a word from a longer phrase)
+  - Grammatical words like "face" no longer drag in every emoji with "Face" in its name
+- Emoji database now 1500+ entries (was 639)
+- The suggestion bar scrolls sideways, so long emoji lists are all reachable instead of being cut off
+- Emoji chips are centred and slightly tighter so more fit on screen
+
 ## 2026-10-01 - v1.1.9
 ### Changes
 - Emoji Suggestions: after you finish a word (press space), matching emojis appear in the suggestion bar (same size as word suggestions) - just like Gboard
