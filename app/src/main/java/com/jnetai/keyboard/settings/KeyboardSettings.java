@@ -95,6 +95,12 @@ public class KeyboardSettings {
     public boolean isNextWordPrediction() { return prefs.getBoolean("next_word_prediction", false); }
     public void setNextWordPrediction(boolean enabled) { prefs.edit().putBoolean("next_word_prediction", enabled).apply(); }
 
+    public boolean isEmojiSuggestionsEnabled() { return prefs.getBoolean("emoji_suggestions", true); }
+    public void setEmojiSuggestionsEnabled(boolean enabled) { prefs.edit().putBoolean("emoji_suggestions", enabled).apply(); }
+
+    public boolean isEmojiReplaceEnabled() { return prefs.getBoolean("emoji_replace", false); }
+    public void setEmojiReplaceEnabled(boolean enabled) { prefs.edit().putBoolean("emoji_replace", enabled).apply(); }
+
     public boolean isAddWordEnabled() { return prefs.getBoolean("add_word_enabled", true); }
     public void setAddWordEnabled(boolean enabled) { prefs.edit().putBoolean("add_word_enabled", enabled).apply(); }
 

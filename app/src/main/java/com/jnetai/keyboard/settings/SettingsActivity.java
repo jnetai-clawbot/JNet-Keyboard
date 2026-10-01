@@ -357,7 +357,10 @@ public class SettingsActivity extends AppCompatActivity {
         addSwitch("Auto-Correct (change to nearest word)", settings.isAutoCorrectEnabled(), (btn, checked) -> settings.setAutoCorrectEnabled(checked));
         addSwitch("Next Word Prediction", settings.isNextWordPrediction(), (btn, checked) -> settings.setNextWordPrediction(checked));
         addSwitch("Add Words to Dictionary", settings.isAddWordEnabled(), (btn, checked) -> settings.setAddWordEnabled(checked));
+        addSwitch("Emoji Suggestions", settings.isEmojiSuggestionsEnabled(), (btn, checked) -> settings.setEmojiSuggestionsEnabled(checked));
+        addSwitch("Replace Emoji When Clicked", settings.isEmojiReplaceEnabled(), (btn, checked) -> settings.setEmojiReplaceEnabled(checked));
         addLabel("Tip: suggestions only finish or correct the word you are typing. Long-press a suggestion you added to remove it.");
+        addLabel("Emoji Suggestions: after a completed word (followed by a space) matching emojis appear in the suggestion bar. Tap one to add it. With 'Replace Emoji When Clicked' ON, tapping replaces the word instead of adding after it.");
     }
 
     private void buildUnicode() {
@@ -789,7 +792,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.8");
+        addLabel("Version v1.1.9");
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

@@ -1,5 +1,16 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-10-01 - v1.1.9
+### Changes
+- Emoji Suggestions: after you finish a word (press space), matching emojis appear in the suggestion bar (same size as word suggestions) - just like Gboard
+  - Only complete words trigger it - partial words (e.g. "hot" while typing "hotel") never show emojis
+  - Examples: "fire" shows the fire emoji, "hot" shows the hot face + fire, "apple" shows the apple emoji
+  - Tap an emoji to add it to your text (word + emoji, e.g. "fire 🔥 ")
+- New "Replace Emoji When Clicked" toggle in Settings > General:
+  - OFF (default): tapping the emoji adds it after the word (e.g. "fire 🔥 ")
+  - ON: tapping the emoji replaces the word that triggered it (e.g. "fire" becomes "🔥 ")
+- Emoji database greatly expanded (500+ emojis) so common words now match emojis
+
 ## 2026-09-30 - v1.1.8
 ### Changes
 - Settings screens now always have generous bottom padding so the last item (e.g. the last Common Phrase) can always be scrolled fully into view above the system navigation bar - nothing gets cut off even with very long phrases

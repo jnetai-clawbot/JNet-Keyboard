@@ -23,6 +23,7 @@ import com.jnetai.keyboard.clipboard.ClipboardManager;
 import com.jnetai.keyboard.dictionary.WordDictionary;
 import com.jnetai.keyboard.diagnostics.Diagnostics;
 import com.jnetai.keyboard.diagnostics.ErrorCodes;
+import com.jnetai.keyboard.emoji.EmojiDatabase;
 import com.jnetai.keyboard.remapping.KeyRemapping;
 import com.jnetai.keyboard.settings.KeyboardSettings;
 import com.jnetai.keyboard.translation.TranslationManager;
@@ -301,6 +302,54 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
     }
 
+    private void showEmojiSuggestions(String word, int wordStart, int displayLen) {
+        if (suggestionBar == null) return;
+        if (isSecureField) return;
+        if (!settings.isEmojiSuggestionsEnabled()) return;
+        if (word == null || word.isEmpty()) return;
+        java.util.List<EmojiDatabase.EmojiEntry> matches = EmojiDatabase.getEmojiForWord(word);
+        if (matches.isEmpty()) return;
+        final boolean replace = settings.isEmojiReplaceEnabled();
+        final int ws = wordStart;
+        final int dl = displayLen;
+        for (EmojiDatabase.EmojiEntry e : matches) {
+            final String emoji = e.emoji;
+            TextView tv = new TextView(this);
+            tv.setText(emoji);
+            tv.setTextSize(16);
+            tv.setTextColor(0xFFFFFFFF);
+            tv.setPadding(16, 12, 16, 12);
+            tv.setBackgroundColor(0xFF3C3C3C);
+            tv.setClickable(true);
+            tv.setOnClickListener(v -> acceptEmojiSuggestion(emoji, ws, dl, replace));
+            suggestionBar.addView(tv);
+        }
+        suggestionBar.setVisibility(View.VISIBLE);
+    }
+
+    private void acceptEmojiSuggestion(String emoji, int wordStart, int displayLen, boolean replace) {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        hideSuggestions();
+        if (replace) {
+            try {
+                int cursor = getCursorAbs();
+                if (cursor >= 0 && displayLen > 0 && cursor - (displayLen + 1) >= 0) {
+                    ic.beginBatchEdit();
+                    ic.deleteSurroundingText(displayLen + 1, 0);
+                    ic.commitText(emoji + " ", 1);
+                    ic.endBatchEdit();
+                    if (settings.isSuggestionsEnabled()) updateSuggestions();
+                    return;
+                }
+            } catch (Exception e) {
+                Diagnostics.log(ErrorCodes.GE_001, "JNetIME", "acceptEmojiSuggestion", e, null);
+            }
+        }
+        ic.commitText(emoji + " ", 1);
+        if (settings.isSuggestionsEnabled()) updateSuggestions();
+    }
+
     private int getCursorAbs() {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return -1;
@@ -563,13 +612,27 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     private void handleSpace(InputConnection ic) {
         syncComposing(ic);
-        if (!isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled())
+        if (!isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled()
+                || settings.isEmojiSuggestionsEnabled())
                 && currentWord.length() > 0) {
+            String word = currentWord.toString();
+            int wordStart = wordStartOffset;
+            int displayLen = wordDisplayLen;
+            if (settings.isAutoCorrectEnabled()) {
+                String corrected = WordDictionary.correct(word);
+                if (corrected != null) {
+                    word = corrected;
+                    displayLen = applyUnicode(word).length();
+                }
+            }
             commitCurrentWord(ic);
             ic.commitText(" ", 1);
             if (settings.isSuggestionsEnabled() && !settings.isTranslationEnabled()) {
                 updateSuggestions();
+            } else {
+                hideSuggestions();
             }
+            showEmojiSuggestions(word, wordStart, displayLen);
             return;
         }
         if (!isSecureField && settings.isTranslationEnabled() && composing.length() > 0) {
@@ -609,7 +672,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         boolean unicodeOn = !isSecureField && settings.isUnicodeEnabled()
                 && !"normal".equals(settings.getCurrentStyleId());
 
-        boolean suggestOn = !isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled());
+        boolean suggestOn = !isSecureField && (settings.isSuggestionsEnabled() || settings.isAutoCorrectEnabled()
+                || settings.isEmojiSuggestionsEnabled());
 
         syncComposing(ic);
 
