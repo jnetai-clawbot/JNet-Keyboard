@@ -39,7 +39,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private Keyboard usKeyboard;
     private Keyboard[] symbolsKeyboards;
     private Keyboard[] emojiKeyboards;
-    private Keyboard phrasesKeyboard;
+    private Keyboard[] phraseKeyboards;
     private KeyboardSettings settings;
     private TranslationManager translationManager;
     private ClipboardManager clipboardManager;
@@ -47,9 +47,10 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private boolean isShifted = false;
     private boolean isCapsLock = false;
     private boolean isSecureField = false;
-    private boolean phrasesActive = false;
     private int symbolsPage = -1;
     private int emojiPage = -1;
+    private int phrasePage = -1;
+    private Runnable phraseChangeListener;
     private StringBuilder composing = new StringBuilder();
     private StringBuilder currentWord = new StringBuilder();
     private int wordStartOffset = -1;
@@ -72,6 +73,10 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         clipboardManager = new ClipboardManager(this);
         keyRemapping = new KeyRemapping(this);
         WordDictionary.init(new java.io.File(getFilesDir(), "custom_words.txt"));
+        // Phrases can be added/edited/removed from the Settings activity while this IME stays
+        // alive, so listen for writes and repaint the phrase pages immediately.
+        phraseChangeListener = this::refreshPhrasesPage;
+        settings.addOnPhrasesChangedListener(phraseChangeListener);
         Diagnostics.info("JNetIME", "onCreate", "IME service created");
     }
 
@@ -140,9 +145,15 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             emList.add(new Keyboard(this, id));
         }
         emojiKeyboards = emList.toArray(new Keyboard[0]);
-        int phrasesId = getResources().getIdentifier("keyboard_phrases", "xml", getPackageName());
-        if (phrasesId != 0) phrasesKeyboard = new Keyboard(this, phrasesId);
-        applyPhraseLabels(phrasesKeyboard);
+
+        java.util.List<Keyboard> phList = new java.util.ArrayList<>();
+        for (int i = 1; i <= KeyboardSettings.MAX_PHRASE_PAGES; i++) {
+            String name = i == 1 ? "keyboard_phrases" : "keyboard_phrases" + i;
+            int id = getResources().getIdentifier(name, "xml", getPackageName());
+            if (id == 0) break;
+            phList.add(new Keyboard(this, id));
+        }
+        phraseKeyboards = phList.toArray(new Keyboard[0]);
 
         if ("us".equals(layout) && usKeyboard != null) {
             currentKeyboard = usKeyboard;
@@ -151,6 +162,9 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         } else if (usKeyboard != null) {
             currentKeyboard = usKeyboard;
         }
+
+        applyAllPhraseLabels();
+        updatePageLabels();
     }
 
     private void applyTheme() {
@@ -166,6 +180,14 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         if (isSecureField) {
             Diagnostics.info("JNetIME", "onStartInputView", "Secure field detected");
         }
+        // The view below always shows the letters page, so every page flag has to be cleared
+        // here. Leaving them set (e.g. after visiting Settings from the phrases page) used to
+        // make the cycler think we were still on page 5, so the phrases page became unreachable.
+        symbolsPage = -1;
+        emojiPage = -1;
+        phrasePage = -1;
+        applyAllPhraseLabels();
+        updatePageLabels();
         if (keyboardView != null && currentKeyboard != null) {
             keyboardView.setKeyboard(currentKeyboard);
         }
@@ -452,9 +474,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             if (phraseLongPressRunnable != null) handler.removeCallbacks(phraseLongPressRunnable);
             phraseLongPressRunnable = () -> {
                 phraseLongPressed = true;
-                int index = primaryCode + 201;
-                java.util.List<String> phrases = settings.getCommonPhrases();
-                if (index >= 0 && index < phrases.size()) {
+                int index = PhraseCodes.indexFor(primaryCode);
+                if (index >= 0 && index < settings.getCommonPhrases().size()) {
                     showPhraseEditDialog(index);
                 }
             };
@@ -514,21 +535,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             case -111:
                 nextPage();
                 break;
-            case -201:
-            case -202:
-            case -203:
-            case -204:
-            case -205:
-            case -206:
-            case -207:
-            case -208:
-            case -209:
-            case -210:
-            case -211:
-            case -212:
-                handlePhrasePress(primaryCode);
-                break;
-            case -213:
+            case PhraseCodes.ADD_CODE:
                 showPhraseEditDialog(-1);
                 break;
             case -108:
@@ -545,7 +552,11 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 openEmojiSearch();
                 break;
             default:
-                handleCharacter(primaryCode, ic);
+                if (isPhraseCode(primaryCode)) {
+                    handlePhrasePress(primaryCode);
+                } else {
+                    handleCharacter(primaryCode, ic);
+                }
                 break;
         }
     }
@@ -879,7 +890,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
         emojiPage = 0;
         symbolsPage = -1;
-        phrasesActive = false;
+        phrasePage = -1;
         if (emojiKeyboards != null && emojiKeyboards.length > 0 && keyboardView != null) {
             keyboardView.setKeyboard(emojiKeyboards[0]);
         }
@@ -892,15 +903,20 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         }
         symbolsPage = 0;
         emojiPage = -1;
-        phrasesActive = false;
+        phrasePage = -1;
         if (symbolsKeyboards != null && symbolsKeyboards.length > 0 && keyboardView != null) {
             keyboardView.setKeyboard(symbolsKeyboards[0]);
         }
     }
 
     private void nextPage() {
-        if (phrasesActive) {
-            switchToLetters();
+        if (phrasePage >= 0) {
+            if (phrasePage >= settings.getPhrasePageCount() - 1) {
+                switchToLetters();
+            } else {
+                phrasePage++;
+                showPhrasePage();
+            }
         } else if (emojiPage >= 0) {
             switchToPhrases();
         } else if (symbolsPage >= 0) {
@@ -916,7 +932,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     }
 
     private void prevPage() {
-        if (phrasesActive) {
+        if (phrasePage >= 0) {
             switchToEmoji();
         } else if (emojiPage >= 0) {
             symbolsPage = symbolsKeyboards.length - 1;
@@ -939,7 +955,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void switchToSymbols() {
         symbolsPage = 0;
         emojiPage = -1;
-        phrasesActive = false;
+        phrasePage = -1;
         if (symbolsKeyboards != null && symbolsKeyboards.length > 0 && keyboardView != null) {
             keyboardView.setKeyboard(symbolsKeyboards[0]);
         }
@@ -948,7 +964,7 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void switchToEmoji() {
         emojiPage = 0;
         symbolsPage = -1;
-        phrasesActive = false;
+        phrasePage = -1;
         if (emojiKeyboards != null && emojiKeyboards.length > 0 && keyboardView != null) {
             keyboardView.setKeyboard(emojiKeyboards[0]);
         }
@@ -957,53 +973,102 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
     private void switchToPhrases() {
         emojiPage = -1;
         symbolsPage = -1;
-        phrasesActive = true;
-        if (phrasesKeyboard != null && keyboardView != null) {
-            applyPhraseLabels(phrasesKeyboard);
-            keyboardView.setKeyboard(phrasesKeyboard);
+        if (phrasePage < 0 || phrasePage >= settings.getPhrasePageCount()) phrasePage = 0;
+        showPhrasePage();
+    }
+
+    private void showPhrasePage() {
+        if (phraseKeyboards == null || phraseKeyboards.length == 0) {
+            switchToLetters();
+            return;
         }
+        int pageCount = Math.min(settings.getPhrasePageCount(), phraseKeyboards.length);
+        if (pageCount < 1) pageCount = 1;
+        if (phrasePage < 0 || phrasePage >= pageCount) phrasePage = pageCount - 1;
+        applyPhraseLabels(phraseKeyboards[phrasePage], phrasePage);
+        updatePageLabels();
+        if (keyboardView != null) keyboardView.setKeyboard(phraseKeyboards[phrasePage]);
     }
 
     private void switchToLetters() {
         symbolsPage = -1;
         emojiPage = -1;
-        phrasesActive = false;
+        phrasePage = -1;
         if (currentKeyboard != null && keyboardView != null) {
             keyboardView.setKeyboard(currentKeyboard);
         }
     }
 
-    private void applyPhraseLabels(Keyboard keyboard) {
+    /**
+     * Number of buttons each phrase page holds. Page 1 owns the original -201..-212 codes,
+     * every later page is offset by PhraseCodes.PAGE_STRIDE.
+     */
+    private void applyPhraseLabels(Keyboard keyboard, int page) {
         if (keyboard == null) return;
         java.util.List<String> phrases = settings.getCommonPhrases();
+        int base = page * PhraseCodes.PER_PAGE;
         java.util.Map<Integer, String> labels = new java.util.HashMap<>();
         for (Keyboard.Key key : keyboard.getKeys()) {
-            if (key.codes != null && key.codes.length > 0) {
-                int code = key.codes[0];
-                if (code >= -212 && code <= -201) {
-                    int index = code + 201;
-                    key.label = "";
-                    if (index >= 0 && index < phrases.size()) {
-                        labels.put(code, phrases.get(index));
-                    } else {
-                        labels.put(code, "");
-                    }
-                }
-            }
+            if (key.codes == null || key.codes.length == 0) continue;
+            int code = key.codes[0];
+            int slot = PhraseCodes.slotInPage(code);
+            if (slot < 0) continue;
+            key.label = "";
+            int index = base + slot;
+            labels.put(code, (index >= 0 && index < phrases.size()) ? phrases.get(index) : "");
         }
         if (keyboardView != null) {
             keyboardView.setPhraseLabels(labels);
         }
     }
 
+    private void applyAllPhraseLabels() {
+        if (phraseKeyboards == null) return;
+        for (int i = 0; i < phraseKeyboards.length; i++) {
+            applyPhraseLabels(phraseKeyboards[i], i);
+        }
+    }
+
+    /**
+     * Keeps the "n/total" pager key honest - the total grows with the number of phrase pages,
+     * which itself grows with the number of saved phrases.
+     */
+    private void updatePageLabels() {
+        if (symbolsKeyboards == null || emojiKeyboards == null) return;
+        int phrasePages = phraseKeyboards == null ? 1 : Math.min(settings.getPhrasePageCount(), phraseKeyboards.length);
+        int total = 1 + symbolsKeyboards.length + emojiKeyboards.length + Math.max(1, phrasePages);
+        int page = 1;
+        // Only the letters layout actually in use gets a page number, so the visible
+        // numbering stays contiguous even though both UK and US are loaded.
+        setPagerLabel(currentKeyboard, page++, total);
+        for (Keyboard keyboard : symbolsKeyboards) setPagerLabel(keyboard, page++, total);
+        for (Keyboard keyboard : emojiKeyboards) setPagerLabel(keyboard, page++, total);
+        if (phraseKeyboards != null) {
+            for (int i = 0; i < phraseKeyboards.length && i < phrasePages; i++) {
+                setPagerLabel(phraseKeyboards[i], page++, total);
+            }
+        }
+        if (keyboardView != null) keyboardView.invalidate();
+    }
+
+    private void setPagerLabel(Keyboard keyboard, int page, int total) {
+        if (keyboard == null) return;
+        for (Keyboard.Key key : keyboard.getKeys()) {
+            if (key.codes != null && key.codes.length > 0 && key.codes[0] == -111) {
+                key.label = page + "/" + total;
+            }
+        }
+    }
+
     private boolean isPhraseCode(int code) {
-        return code >= -212 && code <= -201;
+        return PhraseCodes.isPhraseCode(code);
     }
 
     private void insertPhrase(int code) {
+        int index = PhraseCodes.indexFor(code);
+        if (index < 0) return;
         java.util.List<String> phrases = settings.getCommonPhrases();
-        int index = code + 201;
-        if (index < 0 || index >= phrases.size()) return;
+        if (index >= phrases.size()) return;
         String phrase = phrases.get(index);
         if (phrase == null || phrase.isEmpty()) return;
         InputConnection ic = getCurrentInputConnection();
@@ -1021,8 +1086,8 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
             phraseLongPressed = false;
             return;
         }
+        int index = PhraseCodes.indexFor(code);
         java.util.List<String> phrases = settings.getCommonPhrases();
-        int index = code + 201;
         if (index >= 0 && index < phrases.size() && phrases.get(index) != null
                 && !phrases.get(index).isEmpty()) {
             insertPhrase(code);
@@ -1054,17 +1119,21 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
                 .setPositiveButton("Save", (d, w) -> {
                     String text = input.getText().toString().trim();
                     if (text.isEmpty()) return;
-                    if (index >= 0) {
-                        settings.updateCommonPhrase(index, text);
-                    } else {
-                        settings.addCommonPhrase(text);
+                    boolean saved = (index >= 0)
+                            ? settings.updateCommonPhrase(index, text)
+                            : settings.addCommonPhrase(text);
+                    if (!saved) {
+                        toast("Phrase not saved - phrase pages are full ("
+                                + KeyboardSettings.MAX_PHRASES + " max). Remove one first.");
                     }
                     refreshPhrasesPage();
                 })
                 .setNegativeButton("Cancel", null);
         if (index >= 0) {
             builder.setNeutralButton("Remove", (d, w) -> {
-                settings.removeCommonPhrase(index);
+                if (!settings.removeCommonPhrase(index)) {
+                    toast("Could not remove phrase.");
+                }
                 refreshPhrasesPage();
             });
         }
@@ -1088,10 +1157,22 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
         return "";
     }
 
+    private void toast(final String message) {
+        handler.post(() -> {
+            try {
+                android.widget.Toast.makeText(JNetIME.this, message,
+                        android.widget.Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Diagnostics.log(ErrorCodes.GE_001, "JNetIME", "toast", e, null);
+            }
+        });
+    }
+
     private void refreshPhrasesPage() {
-        applyPhraseLabels(phrasesKeyboard);
-        if (phrasesActive && keyboardView != null && phrasesKeyboard != null) {
-            keyboardView.setKeyboard(phrasesKeyboard);
+        applyAllPhraseLabels();
+        updatePageLabels();
+        if (phrasePage >= 0) {
+            showPhrasePage();
         }
     }
 
@@ -1170,12 +1251,12 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public void swipeLeft() {
-        if (symbolsPage >= 0 || emojiPage >= 0) prevPage();
+        if (symbolsPage >= 0 || emojiPage >= 0 || phrasePage >= 0) prevPage();
     }
 
     @Override
     public void swipeRight() {
-        if (symbolsPage >= 0 || emojiPage >= 0) nextPage();
+        if (symbolsPage >= 0 || emojiPage >= 0 || phrasePage >= 0) nextPage();
     }
     @Override
     public void swipeDown() {}
@@ -1184,6 +1265,10 @@ public class JNetIME extends InputMethodService implements KeyboardView.OnKeyboa
 
     @Override
     public void onDestroy() {
+        if (settings != null && phraseChangeListener != null) {
+            settings.removeOnPhrasesChangedListener(phraseChangeListener);
+        }
+        phraseChangeListener = null;
         super.onDestroy();
         instance = null;
     }

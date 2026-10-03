@@ -8,8 +8,16 @@ import com.jnetai.keyboard.unicode.UnicodeStyleDatabase;
 
 public class KeyboardSettings {
     private static final String PREFS_NAME = "jnet_keyboard_prefs";
+    public static final int PHRASES_PER_PAGE = 12;
+    public static final int MAX_PHRASE_PAGES = 5;
+    public static final int MAX_PHRASES = PHRASES_PER_PAGE * MAX_PHRASE_PAGES;
+    private static final String[] DEFAULT_PHRASES = {
+            "Hey hows you?", "No worries", "Thanks a lot!", "See you later"
+    };
     private static KeyboardSettings instance;
     private final SharedPreferences prefs;
+    private final java.util.List<Runnable> phraseListeners =
+            java.util.Collections.synchronizedList(new java.util.ArrayList<Runnable>());
 
     private Context appContext;
 
@@ -145,41 +153,123 @@ public class KeyboardSettings {
         return count;
     }
 
-    public java.util.List<String> getCommonPhrases() {
+    /**
+     * Stores the starter phrases on first run so the Settings list, the keyboard page and the
+     * stored phrase_N keys all share one index space. Older builds only invented these four
+     * phrases on the fly, so the first Settings add used to wipe them out.
+     */
+    private void ensurePhrasesSeeded() {
+        if (prefs.getBoolean("phrase_seeded", false)) return;
+        SharedPreferences.Editor editor = prefs.edit();
+        if (!prefs.contains("phrase_count")) {
+            for (int i = 0; i < DEFAULT_PHRASES.length; i++) {
+                editor.putString("phrase_" + i, DEFAULT_PHRASES[i]);
+            }
+            editor.putInt("phrase_count", DEFAULT_PHRASES.length);
+        }
+        editor.putBoolean("phrase_seeded", true);
+        editor.commit();
+    }
+
+    private java.util.List<String> readStoredPhrases() {
+        ensurePhrasesSeeded();
         java.util.List<String> phrases = new java.util.ArrayList<>();
-        int count = prefs.getInt("phrase_count", 0);
+        int count = Math.max(0, prefs.getInt("phrase_count", 0));
         for (int i = 0; i < count; i++) {
             String p = prefs.getString("phrase_" + i, null);
-            if (p != null && !p.isEmpty()) phrases.add(p);
-        }
-        if (phrases.isEmpty()) {
-            phrases.add("Hey hows you?");
-            phrases.add("No worries");
-            phrases.add("Thanks a lot!");
-            phrases.add("See you later");
+            if (p == null) continue;
+            p = p.trim();
+            if (!p.isEmpty()) phrases.add(p);
         }
         return phrases;
     }
 
-    public void addCommonPhrase(String phrase) {
-        if (phrase == null || phrase.trim().isEmpty()) return;
-        int count = prefs.getInt("phrase_count", 0);
-        prefs.edit().putString("phrase_" + count, phrase.trim()).putInt("phrase_count", count + 1).apply();
-    }
-
-    public void updateCommonPhrase(int index, String phrase) {
-        int count = prefs.getInt("phrase_count", 0);
-        if (index < 0 || index >= count) return;
-        prefs.edit().putString("phrase_" + index, phrase.trim()).apply();
-    }
-
-    public void removeCommonPhrase(int index) {
-        int count = prefs.getInt("phrase_count", 0);
-        if (index < 0 || index >= count) return;
-        for (int i = index; i < count - 1; i++) {
-            prefs.edit().putString("phrase_" + i, prefs.getString("phrase_" + (i + 1), "")).apply();
+    /**
+     * Rewrites every phrase_N key so list position always matches the stored index. Blank
+     * entries are dropped here, which stops empty slots from shifting later phrases onto the
+     * wrong key. Uses commit() so an IME reading straight after a Settings write sees the change.
+     */
+    private void writePhrases(java.util.List<String> phrases) {
+        SharedPreferences.Editor editor = prefs.edit();
+        int oldCount = Math.max(0, prefs.getInt("phrase_count", 0));
+        for (int i = 0; i < oldCount; i++) {
+            editor.remove("phrase_" + i);
         }
-        prefs.edit().remove("phrase_" + (count - 1)).putInt("phrase_count", count - 1).apply();
+        for (int i = 0; i < phrases.size(); i++) {
+            editor.putString("phrase_" + i, phrases.get(i));
+        }
+        editor.putInt("phrase_count", phrases.size());
+        editor.putBoolean("phrase_seeded", true);
+        editor.commit();
+        notifyPhrasesChanged();
+    }
+
+    public void addOnPhrasesChangedListener(Runnable listener) {
+        if (listener != null && !phraseListeners.contains(listener)) {
+            phraseListeners.add(listener);
+        }
+    }
+
+    public void removeOnPhrasesChangedListener(Runnable listener) {
+        phraseListeners.remove(listener);
+    }
+
+    private void notifyPhrasesChanged() {
+        java.util.List<Runnable> snapshot;
+        synchronized (phraseListeners) {
+            snapshot = new java.util.ArrayList<>(phraseListeners);
+        }
+        for (Runnable listener : snapshot) {
+            try {
+                listener.run();
+            } catch (Exception e) {
+                Diagnostics.log(ErrorCodes.GE_001, "KeyboardSettings", "notifyPhrasesChanged", e, null);
+            }
+        }
+    }
+
+    public java.util.List<String> getCommonPhrases() {
+        return readStoredPhrases();
+    }
+
+    public int getPhrasePageCount() {
+        int pages = (readStoredPhrases().size() + PHRASES_PER_PAGE - 1) / PHRASES_PER_PAGE;
+        if (pages < 1) pages = 1;
+        return Math.min(pages, MAX_PHRASE_PAGES);
+    }
+
+    public int getRemainingPhraseSlots() {
+        return Math.max(0, MAX_PHRASES - readStoredPhrases().size());
+    }
+
+    public boolean addCommonPhrase(String phrase) {
+        if (phrase == null) return false;
+        String text = phrase.trim();
+        if (text.isEmpty()) return false;
+        java.util.List<String> phrases = readStoredPhrases();
+        if (phrases.size() >= MAX_PHRASES) return false;
+        phrases.add(text);
+        writePhrases(phrases);
+        return true;
+    }
+
+    public boolean updateCommonPhrase(int index, String phrase) {
+        if (phrase == null) return false;
+        String text = phrase.trim();
+        if (text.isEmpty()) return false;
+        java.util.List<String> phrases = readStoredPhrases();
+        if (index < 0 || index >= phrases.size()) return false;
+        phrases.set(index, text);
+        writePhrases(phrases);
+        return true;
+    }
+
+    public boolean removeCommonPhrase(int index) {
+        java.util.List<String> phrases = readStoredPhrases();
+        if (index < 0 || index >= phrases.size()) return false;
+        phrases.remove(index);
+        writePhrases(phrases);
+        return true;
     }
 
     private Context context() {

@@ -594,10 +594,19 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void buildPhrases() {
         addSectionHeader("Common Phrases");
-        addLabel("These appear as buttons on keyboard page 5. Tap a phrase to insert it. You can add emojis to phrases too.");
+        java.util.List<String> phrases = settings.getCommonPhrases();
+        int pageCount = settings.getPhrasePageCount();
+        addLabel("These appear as buttons on the keyboard's phrase pages (page 5 onwards). "
+                + "Tap a phrase to insert it. You can add emojis to phrases too.");
+        addLabel("Using " + phrases.size() + " of " + KeyboardSettings.MAX_PHRASES
+                + " phrase slots (" + pageCount + " page" + (pageCount == 1 ? "" : "s")
+                + " on the keyboard). Phrases are saved straight away and show on the keyboard "
+                + "as soon as you come back.");
 
         final EditText addInput = new EditText(this);
         addInput.setHint("New phrase (e.g. Hey hows you?)");
+        addInput.setSingleLine(false);
+        addInput.setMaxLines(3);
         addInput.setTextColor(0xFFFFFFFF);
         addInput.setBackgroundColor(0xFF3C3C3C);
         addInput.setPadding(16, 12, 16, 12);
@@ -605,13 +614,17 @@ public class SettingsActivity extends AppCompatActivity {
 
         addButton("Add Phrase", v -> {
             String text = addInput.getText().toString().trim();
-            if (!text.isEmpty()) {
-                settings.addCommonPhrase(text);
-                buildUI();
+            if (text.isEmpty()) {
+                toast("Type a phrase first.");
+                return;
             }
+            if (!settings.addCommonPhrase(text)) {
+                toast("Phrase pages are full - remove a phrase first.");
+                return;
+            }
+            buildUI();
         });
 
-        java.util.List<String> phrases = settings.getCommonPhrases();
         if (phrases.isEmpty()) {
             addLabel("No phrases yet.");
         } else {
@@ -620,6 +633,7 @@ public class SettingsActivity extends AppCompatActivity {
                 String text = phrases.get(i);
                 LinearLayout row = new LinearLayout(this);
                 row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
                 row.setPadding(0, 4, 0, 4);
 
                 TextView tv = new TextView(this);
@@ -628,6 +642,15 @@ public class SettingsActivity extends AppCompatActivity {
                 tv.setTextColor(0xFFFFFFFF);
                 tv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
                 row.addView(tv);
+
+                TextView slotTv = new TextView(this);
+                slotTv.setText("#" + (index + 1));
+                slotTv.setTextSize(11);
+                slotTv.setTextColor(0xFF888888);
+                slotTv.setPadding(0, 0, 8, 0);
+                slotTv.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                row.addView(slotTv);
 
                 Button editBtn = new Button(this);
                 editBtn.setText("Edit");
@@ -639,7 +662,10 @@ public class SettingsActivity extends AppCompatActivity {
                 delBtn.setText("X");
                 delBtn.setTextSize(12);
                 delBtn.setOnClickListener(v -> {
-                    settings.removeCommonPhrase(index);
+                    if (!settings.removeCommonPhrase(index)) {
+                        toast("Could not remove that phrase.");
+                        return;
+                    }
                     buildUI();
                 });
                 row.addView(delBtn);
@@ -654,6 +680,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (index < 0 || index >= phrases.size()) return;
         final EditText input = new EditText(this);
         input.setText(phrases.get(index));
+        input.setSingleLine(false);
+        input.setMaxLines(3);
         input.setTextColor(0xFFFFFFFF);
         input.setBackgroundColor(0xFF3C3C3C);
         input.setPadding(16, 12, 16, 12);
@@ -661,11 +689,31 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle("Edit Phrase")
                 .setView(input)
                 .setPositiveButton("Save", (d, w) -> {
-                    settings.updateCommonPhrase(index, input.getText().toString().trim());
+                    String text = input.getText().toString().trim();
+                    if (text.isEmpty()) {
+                        toast("A phrase cannot be blank.");
+                        return;
+                    }
+                    if (!settings.updateCommonPhrase(index, text)) {
+                        toast("Could not save that phrase.");
+                        return;
+                    }
                     buildUI();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private String appVersionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
     private void buildClipboard() {
@@ -792,7 +840,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void buildAbout() {
         addSectionHeader("About");
         addLabel("Made by jnetai.com");
-        addLabel("Version v1.1.10");
+        addLabel("Version " + appVersionName());
 
         addButton("Check for Updates", v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW,

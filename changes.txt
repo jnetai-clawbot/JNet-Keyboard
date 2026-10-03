@@ -1,5 +1,33 @@
 # J~Net Keyboard - Changes Log
 
+## 2026-10-03 - v1.1.11
+### Fixed
+- Phrases added in Settings > Common Phrases now actually show up on the keyboard's phrase pages.
+  Previously there was no link at all between the Settings screen writing a phrase and the
+  keyboard reading it, so a phrase could be saved and never appear until the IME process was
+  restarted. The IME now listens for phrase changes and repaints immediately.
+- Coming back from Settings could leave the keyboard stuck on the letters page while it still
+  believed it was on the phrase page, which made page 5 unreachable - pressing the page button
+  just re-drew the letters page. The page state is now reset every time the input view starts.
+- Phrase pages are no longer capped at a hidden 12 slots. Anything past 12 now flows onto extra
+  phrase pages (up to 60 phrases), and the page button count updates to match, e.g. 1/6 2/6 ...
+  6/6 instead of a fixed 1/5 ... 5/5.
+- The four starter phrases ("Hey hows you?", "No worries", "Thanks a lot!", "See you later") are
+  now saved on first run. Before, they were only invented in memory, so the very first phrase you
+  added in Settings silently destroyed all four of them.
+- Blank phrases are rejected on save. Saving an empty one used to leave a hole in the list that
+  pushed every later phrase onto the wrong key, so Edit/X could act on the wrong phrase.
+- Phrase list position and the stored phrase_N key are now kept in step on every write, so
+  Edit and X in Settings always affect the phrase you tapped.
+### Improved
+- Settings > Common Phrases now shows "Using N of 60 phrase slots (X pages on the keyboard)" and
+  numbers each row with its slot, so you can see which button a phrase maps to.
+- Save failures are reported instead of being swallowed - you get a message when the phrase pages
+  are full or a phrase could not be saved.
+- Phrase add/edit boxes accept multi-line text (up to 3 lines).
+- About screen reads the version from the package instead of a hardcoded string, so it can no
+  longer go stale.
+
 ## 2026-10-01 - v1.1.10
 ### Changes
 - Emoji suggestions massively expanded - the emoji database went from 639 to 1500+ entries, and every

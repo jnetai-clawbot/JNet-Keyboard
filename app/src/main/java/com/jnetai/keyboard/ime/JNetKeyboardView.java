@@ -32,7 +32,7 @@ public class JNetKeyboardView extends KeyboardView {
                 int code = key.codes[0];
                 if (code == -4 && key.label != null) {
                     drawEnterIcon(canvas, key);
-                } else if (code >= -212 && code <= -201) {
+                } else if (PhraseCodes.isPhraseCode(code)) {
                     drawPhraseLabel(canvas, key);
                 }
             }

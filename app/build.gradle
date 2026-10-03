@@ -10,8 +10,8 @@ android {
         applicationId "com.jnetai.keyboard"
         minSdk 26
         targetSdk 34
-        versionCode 21
-        versionName "v1.1.10"
+        versionCode 22
+        versionName "v1.1.11"
     }
 
     signingConfigs {

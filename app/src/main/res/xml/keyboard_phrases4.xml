@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:keyHeight="@dimen/phrase_key_height"
+    android:horizontalGap="1px"
+    android:verticalGap="1px">
+
+    <Row>
+        <Key android:codes="-261" android:keyLabel="Phrase 37" android:keyWidth="33%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="-262" android:keyLabel="Phrase 38" android:keyWidth="33%p" />
+        <Key android:codes="-263" android:keyLabel="Phrase 39" android:keyWidth="33%p" android:keyEdgeFlags="right"/>
+    </Row>
+
+    <Row>
+        <Key android:codes="-264" android:keyLabel="Phrase 40" android:keyWidth="33%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="-265" android:keyLabel="Phrase 41" android:keyWidth="33%p" />
+        <Key android:codes="-266" android:keyLabel="Phrase 42" android:keyWidth="33%p" android:keyEdgeFlags="right"/>
+    </Row>
+
+    <Row>
+        <Key android:codes="-267" android:keyLabel="Phrase 43" android:keyWidth="33%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="-268" android:keyLabel="Phrase 44" android:keyWidth="33%p" />
+        <Key android:codes="-269" android:keyLabel="Phrase 45" android:keyWidth="33%p" android:keyEdgeFlags="right"/>
+    </Row>
+
+    <Row>
+        <Key android:codes="-270" android:keyLabel="Phrase 46" android:keyWidth="33%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="-271" android:keyLabel="Phrase 47" android:keyWidth="33%p" />
+        <Key android:codes="-272" android:keyLabel="Phrase 48" android:keyWidth="33%p" android:keyEdgeFlags="right"/>
+    </Row>
+
+    <Row>
+        <Key android:codes="-213" android:keyLabel="+ Add Phrase" android:keyWidth="100%p" android:keyEdgeFlags="left" />
+    </Row>
+
+    <Row>
+        <Key android:codes="-111" android:keyLabel="8/9" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
+        <Key android:codes="-110" android:keyLabel="🔍" android:keyWidth="8%p" />
+        <Key android:codes="-107" android:keyLabel="space" android:keyWidth="46%p" />
+        <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
+        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="10%p" android:isRepeatable="true" />
+        <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="10%p" android:keyEdgeFlags="right" />
+    </Row>
+
+</Keyboard>
